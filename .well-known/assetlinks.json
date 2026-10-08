@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.finanzasravp.twa",
+        "sha256_cert_fingerprints": ["7A:96:B4:6F:2B:E9:E7:13:0F:CE:AA:10:7F:23:99:F6:2E:7C:CB:9D:18:AB:41:2B:41:B0:DA:4A:9D:66:A5:91"]
+      }
+    }]
