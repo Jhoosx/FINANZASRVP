@@ -48,8 +48,8 @@ h1{font-size:1.5rem;margin:0;font-weight:800}
 .fls{display:flex;gap:8px;margin:4px 0 6px}
 .fl{border:1px solid var(--line);background:var(--c2);border-radius:99px;padding:8px 14px;font-weight:600;color:var(--mute)}
 .fl.on{background:var(--gold);color:var(--on);border-color:var(--gold)}
-.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:532px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.nav button{border:0;background:none;border-radius:22px;padding:10px 4px;display:grid;justify-items:center;gap:2px;font-size:.8rem;font-weight:600;color:var(--mute)}
+.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:532px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.nav button{border:0;background:none;border-radius:22px;padding:10px 2px;display:grid;justify-items:center;gap:2px;font-size:.72rem;font-weight:600;color:var(--mute)}
 .nav button span{font-size:1.4rem}
 .nav button.on{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
 .fab{position:fixed;right:max(22px,calc(50% - 258px));bottom:calc(112px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--gold);color:var(--on);font-size:2rem;line-height:1;box-shadow:0 8px 22px rgba(0,0,0,.4)}
@@ -98,8 +98,13 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 #v-dash>.card.sum{display:none}
 #d-top{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 #d-top .card{margin-bottom:16px}
-#v-mov .card,#v-bank .card{max-width:820px}
+#v-mov .card,#v-bank .card,#v-cat .card,#v-prof .card{max-width:820px}
 }
+.av{width:96px;height:96px;border-radius:50%;background:var(--c2) center/cover;display:grid;place-items:center;font-size:2.4rem;margin:0 auto 10px;border:2px solid var(--gold)}
+.btn2{display:inline-block;padding:9px 16px;border-radius:99px;border:1px solid var(--line);background:var(--c2);font-weight:600;cursor:pointer}
+.btn.out{background:var(--c2)!important;color:var(--red)!important;border-color:var(--line)!important}
+.emos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.emos button{border:1px solid var(--line);background:var(--c2);border-radius:10px;width:38px;height:38px;font-size:1.2rem}
+input[type=color]{padding:4px;height:46px}
 </style>
 </head>
 <body>
@@ -147,6 +152,22 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <section id="v-bank" hidden>
     <div class="card"><p class="sec">Mis bancos</p><span class="mute">Bancos, tarjetas y efectivo</span><div id="blist"></div></div>
   </section>
+  <section id="v-cat" hidden>
+    <div class="card"><p class="sec">Categorías</p><span class="mute">Agrega, edita o elimina las tuyas</span><div id="catlist"></div></div>
+  </section>
+  <section id="v-prof" hidden>
+    <div class="card">
+      <div style="text-align:center"><div class="av" id="av">👤</div><label class="btn2" for="p-foto">Cambiar foto</label><input id="p-foto" type="file" accept="image/*" hidden></div>
+      <label for="p-nom">Nombre</label><input id="p-nom" autocomplete="given-name">
+      <label for="p-ape">Apellidos</label><input id="p-ape" autocomplete="family-name">
+      <label for="p-tel">Teléfono</label><input id="p-tel" type="tel" autocomplete="tel">
+      <label for="p-nac">Fecha de nacimiento</label><input id="p-nac" type="date">
+      <label for="p-mail">Correo</label><input id="p-mail" disabled>
+      <div class="mute" id="p-ok" style="text-align:center;min-height:1.2em;margin-top:10px"></div>
+      <button class="btn" id="p-sv" style="margin-top:0">Guardar mis datos</button>
+      <button class="btn out" id="lo">Cerrar sesión</button>
+    </div>
+  </section>
 </div>
 <button class="fab" id="add" aria-label="Agregar">+</button>
 <div class="dsk" id="fabs"><button id="fi" style="background:#3FAE5E" aria-label="Nuevo ingreso">+</button><button id="fg" style="background:#E5473B" aria-label="Nuevo gasto">−</button></div>
@@ -155,6 +176,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <button data-go="mov"><span>📈</span>Movimientos</button>
   <button data-go="dash" class="on"><span>▦</span>Dashboard</button>
   <button data-go="bank"><span>🏛️</span>Mis bancos</button>
+  <button data-go="cat"><span>🏷️</span>Categorías</button>
 </nav>
 </div>
 
@@ -168,6 +190,15 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <label for="f-note">Descripción</label><input id="f-note" type="text" placeholder="Ej. almuerzo">
   <label for="f-date">Fecha</label><input id="f-date" type="date">
   <div class="acts"><button id="mc">Cancelar</button><button class="pri" id="sv">Guardar</button></div>
+</dialog>
+<dialog id="dk">
+  <h2 id="dkt" style="margin:0 0 4px;font-size:1.2rem">Nueva categoría</h2>
+  <label for="k-nom">Nombre</label><input id="k-nom" type="text" placeholder="Ej. Pasaje">
+  <label for="k-emo">Ícono (emoji)</label><input id="k-emo" type="text" maxlength="4" placeholder="🚌">
+  <div class="emos" id="emos"></div>
+  <label for="k-col">Color</label><input id="k-col" type="color" value="#E8B86A">
+  <label for="k-tip">Tipo</label><select id="k-tip"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select>
+  <div class="acts"><button id="kc">Cancelar</button><button class="pri" id="sk">Guardar</button></div>
 </dialog>
 <dialog id="da">
   <h2 id="dat" style="margin:0 0 4px;font-size:1.2rem">Nueva cuenta</h2>
@@ -184,12 +215,13 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 <script>
 (function(){
 var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#4C9BF0"],["Hogar","🏠","#9B82E8"],["Servicios","💡","#E8B86A"],["Salud","💊","#EF5F78"],["Ocio","🎬","#E06CB4"],["Compras","🛍️","#38B59B"],["Otros","📦","#8E9A97"],["Sueldo","💼","#41D98A",1],["Otro ingreso","💰","#41D98A",1]];
+var DEF=CATS;
 var TIPOS={banco:["Banco","#8B7CF6"],credito:["Tarjeta de crédito","#E8B86A"],efectivo:["Efectivo","#5B9DF0"]};
 var $=function(i){return document.getElementById(i)};
-var U=null,EM="",S={acc:[],mov:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null;
+var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{}},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,photo=null;
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return CATS[7]}
+function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
 var money=function(n){return "S/ "+Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})};
 var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function theme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("gastos_theme",t)}catch(e){}$("theme").textContent=t==="dark"?"☀":"☾";document.querySelector('meta[name=theme-color]').content=t==="dark"?"#0B0B0D":"#F5F2EA"}
@@ -227,20 +259,24 @@ function mapM(e){return{id:e.id,tipo:e.tipo||"gasto",amount:Number(e.amount),cat
 function mapA(a){return{id:a.id,nombre:a.nombre,tipo:a.tipo,saldo:Number(a.saldo)}}
 function enter(user){
   U=user.id;EM=user.email||"";
-  Promise.all([sb.from("cuentas").select("*"),sb.from("gastos").select("*")]).then(function(r){
-    if(r[0].error||r[1].error)throw 0;
-    S={acc:r[0].data.map(mapA),mov:r[1].data.map(mapM)};
-    var n=EM.split("@")[0];$("hi").textContent="¡Hola, "+n.charAt(0).toUpperCase()+n.slice(1)+"! 👋";
+  Promise.all([sb.from("cuentas").select("*"),sb.from("gastos").select("*"),sb.from("categorias").select("*").order("created_at"),sb.from("perfil").select("*").maybeSingle()]).then(function(r){
+    if(r[0].error||r[1].error||r[2].error||r[3].error)throw 0;
+    S={acc:r[0].data.map(mapA),mov:r[1].data.map(mapM),cats:r[2].data,prof:r[3].data||{}};
+    if(S.cats.length)return;
+    return sb.from("categorias").insert(DEF.map(function(c){return{nombre:c[0],emoji:c[1],color:c[2],tipo:c[3]?"ingreso":"gasto"}})).select().then(function(x){if(x.error)throw 0;S.cats=x.data});
+  }).then(function(){
+    applyCats();greet();showAv(S.prof.foto||"");
     $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
     $("auth").hidden=true;$("app").hidden=false;cur=new Date();cur.setDate(1);go("dash");render();
   }).catch(function(){
-    alert("No se pudieron cargar tus datos. Ejecuta supabase-v2.sql en Supabase y revisa tu conexión.");
+    alert("No se pudieron cargar tus datos. Ejecuta supabase-v3.sql en Supabase y revisa tu conexión.");
     $("auth").hidden=false;$("app").hidden=true;
   });
 }
-$("prof").onclick=function(){
-  if(!confirm("Sesión: "+EM+"\n¿Cerrar sesión?"))return;
-  sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[]};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
+$("prof").onclick=function(){go("prof")};
+$("lo").onclick=function(){
+  if(!confirm("¿Cerrar sesión?"))return;
+  sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[],cats:[],prof:{}};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
 };
 $("theme").onclick=function(){theme(document.documentElement.dataset.theme==="dark"?"light":"dark")};
 function inM(m){return m.date.slice(0,7)===cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0")}
@@ -248,7 +284,7 @@ function sum(t,l){return l.filter(function(m){return m.tipo===t}).reduce(functio
 function bal(a){var s=a.saldo;S.mov.forEach(function(m){if(m.cuenta===a.id){var d=m.tipo==="ingreso"?1:-1;s+=a.tipo==="credito"?-d*m.amount:d*m.amount}});return s}
 function accName(id){var a=S.acc.filter(function(x){return x.id===id})[0];return a?a.nombre:"Sin cuenta"}
 function render(){
-  try{desk()}catch(e){}
+  try{desk()}catch(e){}renderCats();
   var l=S.mov.filter(inM),inc=sum("ingreso",l),exp=sum("gasto",l);
   var lab=cur.toLocaleDateString("es-PE",{month:"long",year:"numeric"});
   function mb(sub){return '<div class="mh"><button class="ic" data-m="-1" aria-label="Mes anterior">‹</button><div><b class="mlab">'+lab+'</b><span class="mute">'+sub+'</span></div><button class="ic" data-m="1" aria-label="Mes siguiente">›</button></div>'}
@@ -295,9 +331,40 @@ function desk(){
   var rc=S.mov.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts}).slice(0,6);
   $("d-rec").innerHTML='<p class="sec">Transacciones recientes</p>'+(rc.length?rc.map(function(m){var c=cat(m.cat),ing=m.tipo==="ingreso";return '<div class="row" style="grid-template-columns:40px 1fr auto"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||m.cat)+'</b><span class="mute">'+esc(accName(m.cuenta))+' · '+m.date+'</span></div><span class="num '+(ing?"g":"r")+'">'+(ing?"+":"-")+money(m.amount)+'</span></div>'}).join(""):'<div class="empty">Sin movimientos.</div>');
 }
-function go(v){["dash","mov","bank"].forEach(function(x){$("v-"+x).hidden=x!==v});
+function applyCats(){CATS=S.cats.map(function(c){return[c.nombre,c.emoji,c.color,c.tipo==="ingreso"?1:0]})}
+function greet(){var n=(S.prof&&S.prof.nombre)||EM.split("@")[0];$("hi").textContent="¡Hola, "+n.charAt(0).toUpperCase()+n.slice(1)+"! 👋"}
+function showAv(src){["av","prof"].forEach(function(id){var e=$(id);e.style.backgroundImage=src?'url("'+src+'")':"";e.style.backgroundSize="cover";e.style.backgroundPosition="center";e.textContent=src?"":"👤"})}
+function fillProf(){var p=S.prof||{};photo=null;$("p-nom").value=p.nombre||"";$("p-ape").value=p.apellido||"";$("p-tel").value=p.telefono||"";$("p-nac").value=p.nacimiento||"";$("p-mail").value=EM;$("p-ok").textContent="";showAv(p.foto||"")}
+$("p-foto").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){var im=new Image();im.onload=function(){var c=document.createElement("canvas"),z=256,m=Math.min(im.width,im.height);c.width=c.height=z;
+    c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,z,z);photo=c.toDataURL("image/jpeg",0.8);showAv(photo);$("p-ok").textContent="Toca “Guardar mis datos” para conservar la foto."};im.src=r.result};r.readAsDataURL(f)};
+$("p-sv").onclick=function(){
+  var rec={user_id:U,nombre:$("p-nom").value.trim(),apellido:$("p-ape").value.trim(),telefono:$("p-tel").value.trim(),nacimiento:$("p-nac").value||null};
+  if(photo!==null)rec.foto=photo;
+  var b=$("p-sv");b.disabled=true;
+  sb.from("perfil").upsert(rec).select().single().then(function(r){if(r.error)throw r.error;S.prof=r.data;photo=null;greet();$("p-ok").textContent="Datos guardados ✓"}).catch(fail).then(function(){b.disabled=false});
+};
+function renderCats(){
+  function row(c){return '<div class="row" style="grid-template-columns:40px 1fr auto"><span class="chip" style="color:'+esc(c.color)+'">'+esc(c.emoji)+'</span><b>'+esc(c.nombre)+'</b><span><button class="x" data-ce="'+c.id+'" aria-label="Editar">✎</button><button class="x" data-cd="'+c.id+'" aria-label="Eliminar">✕</button></span></div>'}
+  function sec(t,k){var l=S.cats.filter(function(c){return c.tipo===k});return '<p class="sec" style="margin-top:16px">'+t+'</p>'+(l.length?l.map(row).join(""):'<div class="empty">Sin categorías.</div>')}
+  $("catlist").innerHTML=sec("Gastos","gasto")+sec("Ingresos","ingreso")+'<button class="btn" data-newcat="1">+ Agregar categoría</button>';
+}
+function openC(c){eC=c?c.id:null;$("dkt").textContent=c?"Editar categoría":"Nueva categoría";$("k-nom").value=c?c.nombre:"";$("k-emo").value=c?c.emoji:"";$("k-col").value=c?c.color:"#E8B86A";$("k-tip").value=c?c.tipo:"gasto";$("dk").showModal()}
+$("emos").innerHTML="🍽️ 🚌 🏠 💡 💊 🎬 🛍️ 📦 💼 💰 🎓 🐶 ⛽ 📱 ✈️ 🎁 ☕ 🛒 🎮 👶".split(" ").map(function(e){return '<button type="button" data-emo="'+e+'">'+e+'</button>'}).join("");
+$("kc").onclick=function(){$("dk").close()};
+$("sk").onclick=function(){
+  var n=$("k-nom").value.trim();if(!n){$("k-nom").focus();return}
+  if(S.cats.some(function(c){return c.nombre.toLowerCase()===n.toLowerCase()&&c.id!==eC})){alert("Ya existe una categoría con ese nombre.");return}
+  var rec={nombre:n,emoji:$("k-emo").value.trim()||"📦",color:$("k-col").value,tipo:$("k-tip").value};
+  var old=eC?S.cats.filter(function(c){return c.id===eC})[0]:null,b=$("sk");b.disabled=true;
+  up("categorias",rec,eC).then(function(d){
+    S.cats=eC?S.cats.map(function(e){return e.id===eC?d:e}):S.cats.concat(d);applyCats();
+    if(old&&old.nombre!==n)return sb.from("gastos").update({cat:n}).eq("cat",old.nombre).then(function(){S.mov.forEach(function(m){if(m.cat===old.nombre)m.cat=n})});
+  }).then(function(){$("dk").close();render()}).catch(fail).then(function(){b.disabled=false});
+};
+function go(v){["dash","mov","bank","cat","prof"].forEach(function(x){$("v-"+x).hidden=x!==v});
   Array.prototype.forEach.call(document.querySelectorAll(".nav button"),function(b){b.className=b.dataset.go===v?"on":""});
-  $("add").dataset.v=v;window.scrollTo(0,0)}
+  $("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
 function fail(){alert("No se pudo completar. Revisa tu conexión e intenta de nuevo.")}
 function up(t,rec,id){var q=id?sb.from(t).update(rec).eq("id",id):sb.from(t).insert(rec);return q.select().single().then(function(r){if(r.error)throw r.error;return r.data})}
 function rm(t,id){return sb.from(t).delete().eq("id",id).then(function(r){if(r.error)throw r.error})}
@@ -308,17 +375,17 @@ function openM(m){
   eM=m?m.id:null;$("dmt").textContent=m?"Editar movimiento":"Nuevo movimiento";setTipo(m?m.tipo:"gasto");
   $("f-acc").innerHTML='<option value="">Sin cuenta</option>'+S.acc.map(function(a){return '<option value="'+a.id+'">'+esc(a.nombre)+'</option>'}).join("");
   $("f-acc").value=m?(m.cuenta||""):(S.acc[0]?S.acc[0].id:"");
-  if(m)$("f-cat").value=m.cat;
+  if(m){$("f-cat").value=m.cat;if($("f-cat").value!==m.cat){$("f-cat").insertAdjacentHTML("afterbegin",'<option value="'+esc(m.cat)+'">'+esc(m.cat)+'</option>');$("f-cat").value=m.cat}}
   $("f-amt").value=m?m.amount:"";$("f-note").value=m?m.note:"";$("f-date").value=m?m.date:today();
   $("dm").showModal();setTimeout(function(){$("f-amt").focus()},50)}
 function openA(a){eA=a?a.id:null;$("dat").textContent=a?"Editar cuenta":"Nueva cuenta";
   $("c-nom").value=a?a.nombre:"";$("c-tip").value=a?a.tipo:"banco";$("c-sal").value=a?a.saldo:"";$("da").showModal()}
-$("add").onclick=function(){if(this.dataset.v==="bank")openA(null);else openM(null)};
+$("add").onclick=function(){var v=this.dataset.v;if(v==="bank")openA(null);else if(v==="cat")openC(null);else openM(null)};
 $("fi").onclick=function(){openM(null);setTipo("ingreso")};$("fg").onclick=function(){openM(null);setTipo("gasto")};
 $("mc").onclick=function(){$("dm").close()};$("ac").onclick=function(){$("da").close()};
 $("sv").onclick=function(){
   var a=parseFloat($("f-amt").value);if(!(a>0)){$("f-amt").focus();return}
-  var rec={tipo:tipo,amount:Math.round(a*100)/100,cat:$("f-cat").value,note:$("f-note").value.trim(),date:$("f-date").value||today(),cuenta_id:$("f-acc").value||null};
+  var rec={tipo:tipo,amount:Math.round(a*100)/100,cat:$("f-cat").value||"Otros",note:$("f-note").value.trim(),date:$("f-date").value||today(),cuenta_id:$("f-acc").value||null};
   var b=$("sv");b.disabled=true;
   up("gastos",rec,eM).then(function(d){var n=mapM(d);S.mov=eM?S.mov.map(function(e){return e.id===eM?n:e}):S.mov.concat(n);
     $("dm").close();cur=new Date(rec.date+"T00:00:00");cur.setDate(1);render()}).catch(fail).then(function(){b.disabled=false});
@@ -330,11 +397,15 @@ $("sa").onclick=function(){
   up("cuentas",rec,eA).then(function(d){var x=mapA(d);S.acc=eA?S.acc.map(function(e){return e.id===eA?x:e}):S.acc.concat(x);$("da").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 document.addEventListener("click",function(ev){
-  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc]");if(!t)return;var d=t.dataset;
+  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo]");if(!t)return;var d=t.dataset;
   if(d.m){cur.setMonth(cur.getMonth()+Number(d.m));render()}
   else if(d.f){flt=d.f;render()}
   else if(d.go){go(d.go)}
   else if(d.newacc){openA(null)}
+  else if(d.newcat){openC(null)}
+  else if(d.emo){$("k-emo").value=d.emo}
+  else if(d.ce){var c=S.cats.filter(function(x){return x.id==d.ce})[0];if(c)openC(c)}
+  else if(d.cd){if(confirm("¿Eliminar esta categoría? Los movimientos que la usan se mostrarán como “"+(S.cats.filter(function(x){return x.id==d.cd})[0]||{}).nombre+"” sin ícono."))rm("categorias",d.cd).then(function(){S.cats=S.cats.filter(function(x){return x.id!=d.cd});applyCats();render()}).catch(fail)}
   else if(d.e){var m=S.mov.filter(function(x){return x.id==d.e})[0];if(m)openM(m)}
   else if(d.d){if(confirm("¿Eliminar este movimiento?"))rm("gastos",d.d).then(function(){S.mov=S.mov.filter(function(x){return x.id!=d.d});render()}).catch(fail)}
   else if(d.ae){var a=S.acc.filter(function(x){return x.id==d.ae})[0];if(a)openA(a)}
