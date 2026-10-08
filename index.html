@@ -105,6 +105,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .btn.out{background:var(--c2)!important;color:var(--red)!important;border-color:var(--line)!important}
 .emos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.emos button{border:1px solid var(--line);background:var(--c2);border-radius:10px;width:38px;height:38px;font-size:1.2rem}
 input[type=color]{padding:4px;height:46px}
+#dm .seg{grid-template-columns:repeat(3,1fr)}
+.qs{display:flex;flex-wrap:wrap;gap:8px}
+.qc{border:1px solid var(--line);background:var(--c2);border-radius:12px;padding:10px 14px;font-weight:600}
+.qc.on{background:var(--gold);color:var(--on);border-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -182,13 +186,13 @@ input[type=color]{padding:4px;height:46px}
 
 <dialog id="dm">
   <h2 id="dmt" style="margin:0 0 10px;font-size:1.2rem">Nuevo movimiento</h2>
-  <div class="seg"><button type="button" id="tg" class="on">Gasto</button><button type="button" id="ti">Ingreso</button></div>
-  <label for="f-amt">Monto (S/)</label>
+  <div class="seg"><button type="button" id="tg" class="on">Gasto</button><button type="button" id="ti">Ingreso</button><button type="button" id="tq">⚡ Atajo</button></div>
+  <div id="nf"><label for="f-amt">Monto (S/)</label>
   <input id="f-amt" class="amt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
   <label for="f-acc">Cuenta</label><select id="f-acc"></select>
   <label for="f-cat">Categoría</label><select id="f-cat"></select>
   <label for="f-note">Descripción</label><input id="f-note" type="text" placeholder="Ej. almuerzo">
-  <label for="f-date">Fecha</label><input id="f-date" type="date">
+  <label for="f-date">Fecha</label><input id="f-date" type="date"></div><div id="qk" hidden></div>
   <div class="acts"><button id="mc">Cancelar</button><button class="pri" id="sv">Guardar</button></div>
 </dialog>
 <dialog id="dk">
@@ -218,7 +222,7 @@ var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#4C9BF0"],["Hogar
 var DEF=CATS;
 var TIPOS={banco:["Banco","#8B7CF6"],credito:["Tarjeta de crédito","#E8B86A"],efectivo:["Efectivo","#5B9DF0"]};
 var $=function(i){return document.getElementById(i)};
-var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{}},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,photo=null;
+var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{}},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
@@ -368,11 +372,32 @@ function go(v){["dash","mov","bank","cat","prof"].forEach(function(x){$("v-"+x).
 function fail(){alert("No se pudo completar. Revisa tu conexión e intenta de nuevo.")}
 function up(t,rec,id){var q=id?sb.from(t).update(rec).eq("id",id):sb.from(t).insert(rec);return q.select().single().then(function(r){if(r.error)throw r.error;return r.data})}
 function rm(t,id){return sb.from(t).delete().eq("id",id).then(function(r){if(r.error)throw r.error})}
-function setTipo(t){tipo=t;$("tg").className=t==="gasto"?"on":"";$("ti").className=t==="ingreso"?"on":"";
+function setTipo(t){quick=false;$("tq").className="";$("nf").hidden=false;$("qk").hidden=true;tipo=t;$("tg").className=t==="gasto"?"on":"";$("ti").className=t==="ingreso"?"on":"";
   $("f-cat").innerHTML=CATS.filter(function(c){return !!c[3]===(t==="ingreso")}).map(function(c){return '<option value="'+c[0]+'">'+c[1]+' '+c[0]+'</option>'}).join("")}
 $("tg").onclick=function(){setTipo("gasto")};$("ti").onclick=function(){setTipo("ingreso")};
+try{var pp=JSON.parse(localStorage.getItem("gastos_presets"));if(pp&&pp.length)PRE=pp}catch(e){}
+function drawQ(){
+  function ch(l,on,a,v){return '<button type="button" class="qc'+(on?' on':'')+'" data-'+a+'="'+esc(v)+'">'+l+'</button>'}
+  $("qk").innerHTML='<label>Monto</label><div class="qs">'+PRE.map(function(n){return ch("S/ "+n,qa===n,"qa",n)}).join("")+ch("✎ Editar",0,"qedit","1")+'</div>'
+   +'<label>Cuenta</label><div class="qs">'+(S.acc.length?S.acc.map(function(a){return ch(esc(a.nombre),qc===a.id,"qc",a.id)}).join(""):'<span class="mute">Sin cuentas: se guardará sin cuenta.</span>')+'</div>'
+   +'<label>Categoría</label><div class="qs">'+S.cats.map(function(c){return ch(esc(c.emoji)+" "+esc(c.nombre),qk===c.nombre,"qk",c.nombre)}).join("")+'</div>';
+}
+function openQ(){
+  quick=true;$("tg").className="";$("ti").className="";$("tq").className="on";$("nf").hidden=true;$("qk").hidden=false;
+  var la="";try{la=localStorage.getItem("gastos_lastacc")||""}catch(e){}
+  qa=0;qk="";qc=S.acc.some(function(a){return a.id===la})?la:(S.acc[0]?S.acc[0].id:"");drawQ();
+}
+$("tq").onclick=openQ;
+function saveQ(){
+  if(!qa){alert("Elige un monto.");return}
+  if(!qk){alert("Elige una categoría.");return}
+  var c=cat(qk),rec={tipo:c[3]?"ingreso":"gasto",amount:qa,cat:qk,note:"",date:today(),cuenta_id:qc||null};
+  try{localStorage.setItem("gastos_lastacc",qc)}catch(e){}
+  var b=$("sv");b.disabled=true;
+  up("gastos",rec,null).then(function(d){S.mov=S.mov.concat(mapM(d));$("dm").close();cur=new Date();cur.setDate(1);render()}).catch(fail).then(function(){b.disabled=false});
+}
 function openM(m){
-  eM=m?m.id:null;$("dmt").textContent=m?"Editar movimiento":"Nuevo movimiento";setTipo(m?m.tipo:"gasto");
+  eM=m?m.id:null;$("dmt").textContent=m?"Editar movimiento":"Nuevo movimiento";setTipo(m?m.tipo:"gasto");$("tq").hidden=!!m;document.querySelector("#dm .seg").style.gridTemplateColumns=m?"1fr 1fr":"";
   $("f-acc").innerHTML='<option value="">Sin cuenta</option>'+S.acc.map(function(a){return '<option value="'+a.id+'">'+esc(a.nombre)+'</option>'}).join("");
   $("f-acc").value=m?(m.cuenta||""):(S.acc[0]?S.acc[0].id:"");
   if(m){$("f-cat").value=m.cat;if($("f-cat").value!==m.cat){$("f-cat").insertAdjacentHTML("afterbegin",'<option value="'+esc(m.cat)+'">'+esc(m.cat)+'</option>');$("f-cat").value=m.cat}}
@@ -384,6 +409,7 @@ $("add").onclick=function(){var v=this.dataset.v;if(v==="bank")openA(null);else 
 $("fi").onclick=function(){openM(null);setTipo("ingreso")};$("fg").onclick=function(){openM(null);setTipo("gasto")};
 $("mc").onclick=function(){$("dm").close()};$("ac").onclick=function(){$("da").close()};
 $("sv").onclick=function(){
+  if(quick){saveQ();return}
   var a=parseFloat($("f-amt").value);if(!(a>0)){$("f-amt").focus();return}
   var rec={tipo:tipo,amount:Math.round(a*100)/100,cat:$("f-cat").value||"Otros",note:$("f-note").value.trim(),date:$("f-date").value||today(),cuenta_id:$("f-acc").value||null};
   var b=$("sv");b.disabled=true;
@@ -397,11 +423,15 @@ $("sa").onclick=function(){
   up("cuentas",rec,eA).then(function(d){var x=mapA(d);S.acc=eA?S.acc.map(function(e){return e.id===eA?x:e}):S.acc.concat(x);$("da").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 document.addEventListener("click",function(ev){
-  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo]");if(!t)return;var d=t.dataset;
+  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo],[data-qa],[data-qc],[data-qk],[data-qedit]");if(!t)return;var d=t.dataset;
   if(d.m){cur.setMonth(cur.getMonth()+Number(d.m));render()}
   else if(d.f){flt=d.f;render()}
   else if(d.go){go(d.go)}
   else if(d.newacc){openA(null)}
+  else if(d.qa){qa=Number(d.qa);drawQ()}
+  else if(d.qc){qc=d.qc;drawQ()}
+  else if(d.qk){qk=d.qk;drawQ()}
+  else if(d.qedit){var v=prompt("Tus montos rápidos, separados por coma:",PRE.join(", "));if(v){var l=v.split(/[ ,;]+/).map(Number).filter(function(n){return n>0});if(l.length){PRE=l.slice(0,16);try{localStorage.setItem("gastos_presets",JSON.stringify(PRE))}catch(e){}}drawQ()}}
   else if(d.newcat){openC(null)}
   else if(d.emo){$("k-emo").value=d.emo}
   else if(d.ce){var c=S.cats.filter(function(x){return x.id==d.ce})[0];if(c)openC(c)}
