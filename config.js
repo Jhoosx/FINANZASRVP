@@ -1,3 +1,3 @@
 // Pega aquí los datos de tu proyecto de Supabase (Project Settings → API)
-window.SB_URL = "PEGA_AQUI_TU_PROJECT_URL";
-window.SB_KEY = "PEGA_AQUI_TU_ANON_PUBLIC_KEY";
+window.SB_URL = "https://mzlnegkbtdkgfpjbudcb.supabase.co";
+window.SB_KEY = "sb_publishable_8Y9tlGa07pxDS-UfN_Vkcg_TrQHnX7G";
