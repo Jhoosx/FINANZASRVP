@@ -90,8 +90,8 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
       <button type="button" id="tin" class="on">Entrar</button>
       <button type="button" id="tup">Crear cuenta</button>
     </div>
-    <label for="a-user">Usuario o correo</label>
-    <input id="a-user" autocomplete="username" autocapitalize="none" required>
+    <label for="a-user">Correo</label>
+    <input id="a-user" type="email" autocomplete="username" autocapitalize="none" required>
     <label for="a-pass">Contraseña</label>
     <input id="a-pass" type="password" autocomplete="current-password" required>
     <div id="a-c" hidden>
@@ -147,6 +147,8 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
   </div>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 <script>
 (function(){
 var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#3A8FE5"],["Hogar","🏠","#8B6FD6"],["Servicios","💡","#E9B949"],["Salud","💊","#E5566B"],["Ocio","🎬","#D65FA8"],["Compras","🛍️","#2FA88F"],["Otros","📦","#7C8B88"]];
@@ -160,67 +162,59 @@ var money=function(n){return "S/ "+Number(n).toLocaleString("es-PE",{minimumFrac
 var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 $("f-cat").innerHTML=CATS.map(function(c){return '<option value="'+c[0]+'">'+c[1]+' '+c[0]+'</option>'}).join("");
 
-/* ---- cuentas (guardadas en este dispositivo) ---- */
-function users(){try{return JSON.parse(localStorage.getItem(KU))||{}}catch(e){return{}}}
-function b64e(a){return btoa(String.fromCharCode.apply(null,a))}
-function b64d(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})}
-function hash(pw,salt){
-  var enc=new TextEncoder();
-  return crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]).then(function(k){
-    return crypto.subtle.deriveBits({name:"PBKDF2",salt:b64d(salt),iterations:150000,hash:"SHA-256"},k,256);
-  }).then(function(b){return b64e(new Uint8Array(b))});
-}
+/* ---- cuentas (Supabase) ---- */
+var sb=null;try{sb=supabase.createClient(window.SB_URL,window.SB_KEY)}catch(e){}
 function setMode(m){
   mode=m;$("tin").className=m==="in"?"on":"";$("tup").className=m==="up"?"on":"";
   $("a-c").hidden=m==="in";$("a-go").textContent=m==="in"?"Entrar":"Crear cuenta";
   $("a-pass").autocomplete=m==="in"?"current-password":"new-password";$("a-err").textContent="";
 }
 $("tin").onclick=function(){setMode("in")};$("tup").onclick=function(){setMode("up")};
+function msg(e){var t=(e&&e.message)||"";
+  if(/invalid login/i.test(t))return "Correo o contraseña incorrectos.";
+  if(/already registered/i.test(t))return "Ese correo ya tiene cuenta. Prueba con Entrar.";
+  if(/not confirmed/i.test(t))return "Confirma tu correo antes de entrar (revisa tu bandeja).";
+  if(/rate limit/i.test(t))return "Demasiados intentos. Espera unos minutos.";
+  return t||"Ocurrió un error. Intenta de nuevo."}
 $("aform").onsubmit=function(ev){
   ev.preventDefault();
-  var u=$("a-user").value.trim().toLowerCase(),p=$("a-pass").value,err=$("a-err");
-  if(u.length<3){err.textContent="El usuario debe tener al menos 3 caracteres.";return}
+  var u=$("a-user").value.trim().toLowerCase(),p=$("a-pass").value,err=$("a-err"),go=$("a-go");
+  if(!sb){err.textContent="Falta configurar Supabase en config.js.";return}
+  if(!/^\S+@\S+\.\S+$/.test(u)){err.textContent="Escribe un correo válido.";return}
   if(p.length<6){err.textContent="La contraseña debe tener al menos 6 caracteres.";return}
-  if(!window.crypto||!crypto.subtle){err.textContent="Abre la app desde https para poder entrar.";return}
-  var all=users();
-  if(mode==="up"){
-    if(all[u]){err.textContent="Ese usuario ya existe. Prueba con Entrar.";return}
-    if(p!==$("a-pass2").value){err.textContent="Las contraseñas no coinciden.";return}
-    var salt=b64e(crypto.getRandomValues(new Uint8Array(16)));
-    hash(p,salt).then(function(h){
-      var first=Object.keys(all).length===0,old=localStorage.getItem("gastos_v1");
-      all[u]={salt:salt,hash:h};localStorage.setItem(KU,JSON.stringify(all));
-      if(first&&old)localStorage.setItem("gastos_d_"+u,old);
-      enter(u);
-    });
-  }else{
-    if(!all[u]){err.textContent="Usuario o contraseña incorrectos.";return}
-    hash(p,all[u].salt).then(function(h){
-      if(h!==all[u].hash){err.textContent="Usuario o contraseña incorrectos.";return}
-      enter(u);
-    });
-  }
+  if(mode==="up"&&p!==$("a-pass2").value){err.textContent="Las contraseñas no coinciden.";return}
+  go.disabled=true;err.textContent="";
+  var q=mode==="up"?sb.auth.signUp({email:u,password:p}):sb.auth.signInWithPassword({email:u,password:p});
+  q.then(function(r){
+    if(r.error){err.textContent=msg(r.error);return}
+    if(r.data&&r.data.session)enter(r.data.session.user);
+    else err.textContent="Cuenta creada. Revisa tu correo para confirmarla y luego entra.";
+  }).catch(function(){err.textContent="No hay conexión. Intenta de nuevo."}).then(function(){go.disabled=false});
 };
-function enter(u){
-  U=u;try{localStorage.setItem(KS,u)}catch(e){}
-  S={expenses:[],budget:0};
-  try{var r=localStorage.getItem("gastos_d_"+u);if(r){var p=JSON.parse(r);if(p&&Array.isArray(p.expenses))S=p}}catch(e){}
-  $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
-  $("auth").hidden=true;$("app").hidden=false;$("uname").textContent=u;
-  cur=new Date();cur.setDate(1);render();
+function row2(e){return{id:e.id,amount:Number(e.amount),cat:e.cat,note:e.note||"",date:e.date,ts:Date.parse(e.created_at)||0}}
+function enter(user){
+  U=user.id;
+  Promise.all([sb.from("gastos").select("*"),sb.from("presupuesto").select("amount").maybeSingle()]).then(function(r){
+    if(r[0].error)throw r[0].error;
+    S={expenses:r[0].data.map(row2),budget:r[1].data?Number(r[1].data.amount):0};
+    $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
+    $("auth").hidden=true;$("app").hidden=false;$("uname").textContent=user.email;
+    cur=new Date();cur.setDate(1);render();
+  }).catch(function(){
+    alert("No se pudieron cargar tus datos. Revisa tu conexión y que supabase.sql ya esté ejecutado.");
+    $("auth").hidden=false;$("app").hidden=true;
+  });
 }
 $("logout").onclick=function(){
   if(!confirm("¿Cerrar sesión?"))return;
-  try{localStorage.removeItem(KS)}catch(e){}
-  U=null;$("app").hidden=true;$("auth").hidden=false;setMode("in");
+  sb.auth.signOut().then(function(){U=null;S={expenses:[],budget:0};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
 };
-function save(){try{localStorage.setItem("gastos_d_"+U,JSON.stringify(S))}catch(e){}}
 
 /* ---- gastos ---- */
 function render(){
   var ym=cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0");
   $("mlabel").textContent=cur.toLocaleDateString("es-PE",{month:"long",year:"numeric"});
-  var list=S.expenses.filter(function(e){return e.date.slice(0,7)===ym}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
+  var list=S.expenses.filter(function(e){return e.date.slice(0,7)===ym}).sort(function(a,b){return b.date.localeCompare(a.date)||(b.ts||0)-(a.ts||0)});
   var total=list.reduce(function(s,e){return s+e.amount},0);
   $("total").textContent=money(total);
   var m=$("meter");
@@ -255,25 +249,39 @@ $("save").onclick=function(){
   var a=parseFloat($("f-amt").value);
   if(!(a>0)){$("f-amt").focus();return}
   var rec={amount:Math.round(a*100)/100,cat:$("f-cat").value,note:$("f-note").value.trim(),date:$("f-date").value||today()};
-  if(editId){S.expenses=S.expenses.map(function(e){return e.id===editId?Object.assign({id:editId},rec):e})}
-  else{rec.id=Date.now();S.expenses.push(rec)}
-  save();$("dlg").close();
-  cur=new Date(rec.date+"T00:00:00");cur.setDate(1);render();
+  var btn=$("save");btn.disabled=true;
+  var q=editId?sb.from("gastos").update(rec).eq("id",editId).select().single():sb.from("gastos").insert(rec).select().single();
+  q.then(function(r){
+    if(r.error){alert("No se pudo guardar. Intenta de nuevo.");return}
+    var n=row2(r.data);
+    S.expenses=editId?S.expenses.map(function(e){return e.id===editId?n:e}):S.expenses.concat(n);
+    $("dlg").close();cur=new Date(rec.date+"T00:00:00");cur.setDate(1);render();
+  }).catch(function(){alert("Sin conexión. Intenta de nuevo.")}).then(function(){btn.disabled=false});
 };
 $("list").onclick=function(ev){
   var t=ev.target;
-  if(t.dataset.del){if(confirm("¿Eliminar este gasto?")){S.expenses=S.expenses.filter(function(e){return e.id!=t.dataset.del});save();render()}}
+  if(t.dataset.del&&confirm("¿Eliminar este gasto?")){
+    sb.from("gastos").delete().eq("id",t.dataset.del).then(function(r){
+      if(r.error){alert("No se pudo eliminar.");return}
+      S.expenses=S.expenses.filter(function(e){return e.id!=t.dataset.del});render();
+    });
+  }
   if(t.dataset.edit){var f=S.expenses.filter(function(e){return e.id==t.dataset.edit})[0];if(f)openDlg(f)}
 };
 $("prev").onclick=function(){cur.setMonth(cur.getMonth()-1);render()};
 $("next").onclick=function(){cur.setMonth(cur.getMonth()+1);render()};
 $("setBudget").onclick=function(){
   var v=prompt("Presupuesto mensual en S/ (0 para quitarlo):",S.budget||"");
-  if(v===null)return;var n=parseFloat(v);S.budget=n>0?n:0;save();render();
+  if(v===null)return;var n=parseFloat(v);n=n>0?n:0;
+  sb.from("presupuesto").upsert({user_id:U,amount:n}).then(function(r){
+    if(r.error){alert("No se pudo guardar el presupuesto.");return}
+    S.budget=n;render();
+  });
 };
+if(sb){sb.auth.getSession().then(function(r){
+  if(r.data&&r.data.session)enter(r.data.session.user);else{$("auth").hidden=false;setMode("in")}
+})}else{$("auth").hidden=false;setMode("in")}
 
-var ses=null;try{ses=localStorage.getItem(KS)}catch(e){}
-if(ses&&users()[ses])enter(ses);else{$("auth").hidden=false;setMode("in")}
 })();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script>
