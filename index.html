@@ -92,6 +92,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .nav button span{font-size:1.2rem}
 .wrap{max-width:none;margin:0 0 0 236px;padding:24px 32px 56px}
 .fab{display:none}
+.sd,.sdbg{display:none!important}
 #fabs{display:flex!important;flex-direction:column;gap:12px;position:fixed;right:28px;bottom:28px}
 #fabs button{width:56px;height:56px;border-radius:50%;border:0;font-size:2rem;line-height:1;color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.35)}
 #v-dash{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
@@ -120,6 +121,15 @@ input[type=color]{padding:4px;height:46px}
 .btn.alt{background:var(--c2)!important;color:var(--ink)!important;border-color:var(--line)!important}
 .mhid{display:none!important}
 @media(min-width:1000px){.mhid{display:flex!important}}
+.sd{position:fixed;right:max(22px,calc(50% - 258px));bottom:calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-end;gap:12px;z-index:30}
+.sd .fab{position:static;width:50px;height:50px;font-size:1.7rem;transition:transform .2s}
+.sd.open .fab{transform:rotate(45deg)}
+.sdm{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.sdm button{display:flex;align-items:center;gap:10px;border:0;background:none;padding:0}
+.sdm span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 12px;font-weight:700;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.sdm i{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:1.15rem;background:var(--c2);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.sdm [data-sd=ing] i{color:var(--grn)}.sdm [data-sd=gas] i{color:var(--red)}
+.sdbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
 </style>
 </head>
 <body>
@@ -155,6 +165,7 @@ input[type=color]{padding:4px;height:46px}
     <div class="dsk" id="d-top"></div>
     <div class="card sum" id="sum"></div>
     <div class="card"><p class="sec">Mis bancos y efectivo</p><span class="mute">Tus cuentas y saldos actuales</span><div id="accs"></div></div>
+    <div class="card" id="d-cred"></div>
     <div class="card dsk" id="d-cc"></div>
     <div class="card dsk" id="d-bal"></div>
     <div class="card dsk" id="d-7"></div>
@@ -189,7 +200,16 @@ input[type=color]{padding:4px;height:46px}
     </div>
   </section>
 </div>
-<button class="fab" id="add" aria-label="Agregar">+</button>
+<div class="sdbg" id="sdbg" hidden></div>
+<div class="sd" id="sd">
+  <div class="sdm" id="sdm" hidden>
+    <button data-sd="cat"><span>Categorías</span><i>🏷️</i></button>
+    <button data-sd="ing"><span>Ingreso</span><i>↙</i></button>
+    <button data-sd="gas"><span>Gasto</span><i>↗</i></button>
+    <button data-sd="atj"><span>Atajo</span><i>⚡</i></button>
+  </div>
+  <button class="fab" id="add" aria-label="Agregar">+</button>
+</div>
 <div class="dsk" id="fabs"><button id="fi" style="background:#3FAE5E" aria-label="Nuevo ingreso">+</button><button id="fg" style="background:#E5473B" aria-label="Nuevo gasto">−</button></div>
 <nav class="nav">
   <div class="brand dsk"><div class="coin" aria-hidden="true">S/</div>Mis Gastos</div>
@@ -324,7 +344,7 @@ function sum(t,l){return l.filter(function(m){return m.tipo===t}).reduce(functio
 function bal(a){var s=a.saldo;S.mov.forEach(function(m){if(m.cuenta===a.id){var d=m.tipo==="ingreso"?1:-1;s+=a.tipo==="credito"?-d*m.amount:d*m.amount}});return s}
 function accName(id){var a=S.acc.filter(function(x){return x.id===id})[0];return a?a.nombre:"Sin cuenta"}
 function render(){
-  try{desk()}catch(e){}renderCats();renderCred();
+  try{desk()}catch(e){}renderCats();renderCred();renderDC();
   var l=S.mov.filter(inM),inc=sum("ingreso",l),exp=sum("gasto",l);
   var lab=cur.toLocaleDateString("es-PE",{month:"long",year:"numeric"});
   function mb(sub){return '<div class="mh"><button class="ic" data-m="-1" aria-label="Mes anterior">‹</button><div><b class="mlab">'+lab+'</b><span class="mute">'+sub+'</span></div><button class="ic" data-m="1" aria-label="Mes siguiente">›</button></div>'}
@@ -426,6 +446,18 @@ function renderCred(){
     return '<div class="cr"><div class="crh"><b>'+esc(c.nombre)+'</b><span class="num '+(done?'g':'r')+'">'+money(c.saldo)+'</span></div><div class="mute">'+(c.cuota?'Cuota '+money(c.cuota)+' · ':'')+(c.ct?c.cp+' de '+c.ct+' pagadas · ':'')+'pago '+c.frec+'</div><div class="bar"><i style="width:'+pct+'%;background:var(--gold)"></i></div><div class="crf">'+bd+'<span>'+(done?'':'<button class="pay" data-pay="'+c.id+'">Pagar cuota</button>')+'<button class="x" data-cre="'+c.id+'" aria-label="Editar">✎</button><button class="x" data-crd="'+c.id+'" aria-label="Eliminar">✕</button></span></div></div>'
   }).join(""):'<div class="empty">Aún no tienes créditos.<br>Agrega el primero con el botón de abajo.</div>';
 }
+function dueTxt(c){var dl=dleft(c.prox);return '<span class="bdg '+(dl<0?'r':dl<=7?'y':'')+'">📅 '+fmtD(c.prox)+' · '+(dl<0?'vencida hace '+(-dl)+' d':dl===0?'vence hoy':'en '+dl+' d')+'</span>'}
+function renderDC(){
+  var act=S.cred.filter(function(c){return c.saldo>0}),tot=act.reduce(function(s,c){return s+c.saldo},0);
+  var n=new Date(),mk=n.getFullYear()+"-"+pad(n.getMonth()+1);
+  var mes=act.filter(function(c){return c.prox&&c.prox.slice(0,7)<=mk}).reduce(function(s,c){return s+c.cuota},0);
+  var nx=act.filter(function(c){return c.prox}).sort(function(a,b){return a.prox.localeCompare(b.prox)}).slice(0,3);
+  $("d-cred").innerHTML='<div class="crh"><div><p class="sec">Créditos y cuotas</p><span class="mute">Lo que debes y cuándo pagar</span></div><button class="x" data-go="cred" style="color:var(--gold);font-weight:700">Ver todo ›</button></div>'
+   +(act.length?'<div class="ln2" style="margin-top:10px"><span>Deuda pendiente</span><span class="num r">'+money(tot)+'</span></div><div class="ln2"><span>Cuotas por pagar este mes</span><span class="num y">'+money(mes)+'</span></div>'+nx.map(function(c){return '<div class="ln2"><span style="display:grid"><b>'+esc(c.nombre)+'</b>'+dueTxt(c)+'</span><span class="num">'+money(c.cuota)+'</span></div>'}).join(""):'<div class="empty">'+(S.cred.length?'¡Sin deudas pendientes! 🎉':'Agrega tu primer crédito en la pestaña Crédito.')+'</div>');
+}
+function sd(o){$("sd").className="sd"+(o?" open":"");$("sdm").hidden=!o;$("sdbg").hidden=!o}
+$("add").onclick=function(){sd($("sdm").hidden)};
+$("sdbg").onclick=function(){sd(false)};
 function openR(c){eR=c?c.id:null;$("drt").textContent=c?"Editar crédito":"Nuevo crédito";
   $("r-nom").value=c?c.nombre:"";$("r-tot").value=c&&c.total?c.total:"";$("r-sal").value=c?c.saldo:"";$("r-cuo").value=c&&c.cuota?c.cuota:"";
   $("r-ct").value=c&&c.ct?c.ct:"";$("r-cp").value=c?c.cp:"";$("r-prox").value=c&&c.prox?c.prox:"";$("r-frec").value=c?c.frec:"mensual";$("dr").showModal()}
@@ -458,7 +490,7 @@ $("sp").onclick=function(){
 };
 function go(v){["dash","mov","bank","cat","prof","cred"].forEach(function(x){$("v-"+x).hidden=x!==v});
   Array.prototype.forEach.call(document.querySelectorAll(".nav button"),function(b){b.className=b.dataset.go===v?"on":""});
-  $("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
+  sd(false);$("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
 function fail(){alert("No se pudo completar. Revisa tu conexión e intenta de nuevo.")}
 function up(t,rec,id){var q=id?sb.from(t).update(rec).eq("id",id):sb.from(t).insert(rec);return q.select().single().then(function(r){if(r.error)throw r.error;return r.data})}
 function rm(t,id){return sb.from(t).delete().eq("id",id).then(function(r){if(r.error)throw r.error})}
@@ -495,7 +527,6 @@ function openM(m){
   $("dm").showModal();setTimeout(function(){$("f-amt").focus()},50)}
 function openA(a){eA=a?a.id:null;$("dat").textContent=a?"Editar cuenta":"Nueva cuenta";
   $("c-nom").value=a?a.nombre:"";$("c-tip").value=a?a.tipo:"banco";$("c-sal").value=a?a.saldo:"";$("da").showModal()}
-$("add").onclick=function(){var v=this.dataset.v;if(v==="bank")openA(null);else if(v==="cat")openC(null);else if(v==="cred")openR(null);else openM(null)};
 $("fi").onclick=function(){openM(null);setTipo("ingreso")};$("fg").onclick=function(){openM(null);setTipo("gasto")};
 $("mc").onclick=function(){$("dm").close()};$("ac").onclick=function(){$("da").close()};
 $("sv").onclick=function(){
@@ -513,11 +544,12 @@ $("sa").onclick=function(){
   up("cuentas",rec,eA).then(function(d){var x=mapA(d);S.acc=eA?S.acc.map(function(e){return e.id===eA?x:e}):S.acc.concat(x);$("da").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 document.addEventListener("click",function(ev){
-  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo],[data-newcr],[data-pay],[data-cre],[data-crd],[data-qa],[data-qc],[data-qk],[data-qedit]");if(!t)return;var d=t.dataset;
+  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo],[data-sd],[data-newcr],[data-pay],[data-cre],[data-crd],[data-qa],[data-qc],[data-qk],[data-qedit]");if(!t)return;var d=t.dataset;
   if(d.m){cur.setMonth(cur.getMonth()+Number(d.m));render()}
   else if(d.f){flt=d.f;render()}
   else if(d.go){go(d.go)}
   else if(d.newacc){openA(null)}
+  else if(d.sd){sd(false);if(d.sd==="cat")go("cat");else if(d.sd==="ing"){openM(null);setTipo("ingreso")}else if(d.sd==="gas")openM(null);else if(d.sd==="atj"){openM(null);openQ()}}
   else if(d.newcr){openR(null)}
   else if(d.pay){openP(d.pay)}
   else if(d.cre){var r=S.cred.filter(function(x){return x.id==d.cre})[0];if(r)openR(r)}
