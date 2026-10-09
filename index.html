@@ -297,8 +297,10 @@ function render(){
   function acc(a,full){var t=TIPOS[a.tipo]||TIPOS.banco;
     return '<div class="ac"'+(full?'':' data-go="bank" style="cursor:pointer"')+'><span class="chip big" style="color:'+t[1]+'">'+esc(a.nombre.slice(0,2).toUpperCase())+'</span><div><b>'+esc(a.nombre)+'</b><span class="mute">'+t[0]+(a.tipo==="credito"?" · deuda":"")+'</span></div><span class="num">'+money(bal(a))+'</span>'+(full?'<span><button class="x" data-ae="'+a.id+'" aria-label="Editar">✎</button><button class="x" data-ad="'+a.id+'" aria-label="Eliminar">✕</button></span>':'')+'</div>'}
   var none='<div class="empty">Aún no tienes cuentas.<br>Toca “Mis bancos” y agrega la primera.</div>';
-  $("accs").innerHTML=S.acc.length?S.acc.map(function(a){return acc(a,0)}).join(""):none;
-  $("blist").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,1)}).join(""):none)+'<button class="btn" data-newacc="1">+ Agregar cuenta</button>';
+  var tb=S.acc.filter(function(a){return a.tipo!=="credito"}).reduce(function(s,a){return s+bal(a)},0),td=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+bal(a)},0);
+  var tot=S.acc.length?'<div class="ln2" style="border-top:2px solid var(--line);margin-top:12px"><b>Total</b><span class="num y">'+money(tb)+'</span></div>'+(td?'<div class="ln2"><span class="mute">Deuda en tarjetas</span><span class="num r">'+money(-td)+'</span></div>':''):"";
+  $("accs").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,0)}).join(""):none)+tot;
+  $("blist").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,1)}).join(""):none)+tot+'<button class="btn" data-newacc="1">+ Agregar cuenta</button>';
   var by={};l.forEach(function(m){if(m.tipo==="gasto")by[m.cat]=(by[m.cat]||0)+m.amount});
   var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
   $("cats").innerHTML=ks.length?ks.map(function(k){var c=cat(k);return '<div class="cat"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div>'+esc(k)+'<div class="bar"><i style="width:'+(by[k]/exp*100)+'%;background:'+c[2]+'"></i></div></div><b class="num">'+money(by[k])+'</b></div>'}).join(""):'<div class="empty">Sin gastos este mes.</div>';
