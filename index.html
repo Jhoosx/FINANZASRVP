@@ -144,29 +144,51 @@ input[type=color]{padding:4px;height:46px}
 .lg span{display:inline-flex;align-items:center;gap:5px}.lg i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .ac{position:relative;padding-left:24px}
 .ac::before{content:"";position:absolute;left:9px;top:14px;bottom:14px;width:4px;border-radius:4px;background:var(--bc,var(--gold))}
+#auth{background:radial-gradient(70% 55% at 50% -5%,color-mix(in srgb,var(--gold) 20%,transparent),transparent 70%),var(--bg)}
+.acard{width:min(420px,100%);margin-top:46px;padding:34px 28px 24px;border-radius:30px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.logo{display:block;width:92px;height:92px;margin:-80px auto 14px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);box-shadow:0 0 0 7px color-mix(in srgb,var(--gold) 14%,transparent),0 14px 34px rgba(0,0,0,.55);background:var(--c2)}
+.acard h2{font-size:1.75rem;letter-spacing:-.02em}
+.acard>p{margin:4px 0 20px;font-size:.92rem}
+.acard input{height:50px;border-radius:14px}
+.pw{position:relative}.pw input{padding-right:50px}
+.pe{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:none;font-size:1.15rem;opacity:.75;border-radius:10px}
+.fw{text-align:right;margin-top:6px}
+.fgt{border:0;background:none;color:var(--gold);font-weight:600;font-size:.85rem;padding:4px 0}
+.okm{color:var(--grn);font-size:.85rem;margin:8px 0 0}.okm:empty,.err:empty{display:none}
+.acard .btn{height:52px;margin-top:16px;font-size:1rem;border-radius:14px;box-shadow:0 10px 24px color-mix(in srgb,var(--gold) 30%,transparent)}
+.sec2{margin-top:18px;text-align:center;font-size:.78rem;color:var(--mute)}
 </style>
 </head>
 <body>
 <main id="auth" hidden>
-  <form class="acard" id="aform" autocomplete="on">
-    <div class="coin" aria-hidden="true">S/</div>
+  <div class="acard">
+    <img class="logo" src="icons/icon-192.png" alt="Mis Gastos" width="92" height="92">
     <h2>Mis Gastos</h2>
-    <p class="mute">Entra para ver y registrar tus gastos</p>
-    <div class="seg" role="tablist">
-      <button type="button" id="tin" class="on">Entrar</button>
-      <button type="button" id="tup">Crear cuenta</button>
-    </div>
-    <label for="a-user">Correo</label>
-    <input id="a-user" type="email" autocomplete="username" autocapitalize="none" required>
-    <label for="a-pass">Contraseña</label>
-    <input id="a-pass" type="password" autocomplete="current-password" required>
-    <div id="a-c" hidden>
-      <label for="a-pass2">Repite la contraseña</label>
-      <input id="a-pass2" type="password" autocomplete="new-password">
-    </div>
-    <div class="err" id="a-err" role="alert"></div>
-    <button class="btn" id="a-go" type="submit">Entrar</button>
-  </form>
+    <p class="mute" id="a-sub">Entra para ver y registrar tus gastos</p>
+    <form id="aform" autocomplete="on">
+      <div class="seg" role="tablist"><button type="button" id="tin" class="on">Entrar</button><button type="button" id="tup">Crear cuenta</button></div>
+      <label for="a-user">Correo</label>
+      <input id="a-user" type="email" autocomplete="username" autocapitalize="none" placeholder="tucorreo@ejemplo.com" required>
+      <label for="a-pass">Contraseña</label>
+      <div class="pw"><input id="a-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña" required><button type="button" class="pe" data-eye="a-pass" aria-label="Mostrar contraseña">👁</button></div>
+      <div id="a-c" hidden><label for="a-pass2">Repite la contraseña</label><div class="pw"><input id="a-pass2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-pass2" aria-label="Mostrar contraseña">👁</button></div></div>
+      <div class="fw" id="a-fw"><button type="button" class="fgt" id="a-forgot">¿Olvidaste tu contraseña?</button></div>
+      <div class="err" id="a-err" role="alert"></div>
+      <div class="okm" id="a-ok" role="status"></div>
+      <button class="btn" id="a-go" type="submit">Entrar</button>
+    </form>
+    <form id="arec" hidden>
+      <h3 style="text-align:center;margin:0 0 4px;font-size:1.15rem">Crea tu nueva contraseña</h3>
+      <p class="mute" style="text-align:center;margin:0 0 6px;font-size:.88rem">Elige una que no hayas usado antes.</p>
+      <label for="a-new">Nueva contraseña</label>
+      <div class="pw"><input id="a-new" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><button type="button" class="pe" data-eye="a-new" aria-label="Mostrar contraseña">👁</button></div>
+      <label for="a-new2">Repite la contraseña</label>
+      <div class="pw"><input id="a-new2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-new2" aria-label="Mostrar contraseña">👁</button></div>
+      <div class="err" id="a-rerr" role="alert"></div>
+      <button class="btn" type="submit">Guardar contraseña</button>
+    </form>
+    <div class="sec2">🔒 Tus datos están protegidos y solo tú los ves</div>
+  </div>
 </main>
 
 <div id="app" hidden>
@@ -231,7 +253,7 @@ input[type=color]{padding:4px;height:46px}
 </div>
 <div class="dsk" id="fabs"><button id="fi" style="background:#3FAE5E" aria-label="Nuevo ingreso">+</button><button id="fg" style="background:#E5473B" aria-label="Nuevo gasto">−</button></div>
 <nav class="nav">
-  <div class="brand dsk"><div class="coin" aria-hidden="true">S/</div>Mis Gastos</div>
+  <div class="brand dsk"><img src="icons/icon-192.png" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">Mis Gastos</div>
   <button data-go="mov"><span>📈</span>Movimientos</button>
   <button data-go="dash" class="on"><span>▦</span>Dashboard</button>
   <button data-go="bank"><span>🏛️</span>Mis bancos</button>
@@ -325,7 +347,7 @@ var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#4C9BF0"],["Hogar
 var DEF=CATS;
 var TIPOS={banco:["Banco","#8B7CF6"],credito:["Tarjeta de crédito","#E8B86A"],efectivo:["Efectivo","#5B9DF0"]};
 var $=function(i){return document.getElementById(i)};
-var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
+var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,REC=/type=recovery/.test(location.hash),EXP=/otp_expired|access_denied/.test(location.hash),tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
@@ -339,7 +361,7 @@ var sb=null;try{sb=supabase.createClient(window.SB_URL,window.SB_KEY)}catch(e){}
 function setMode(m){
   mode=m;$("tin").className=m==="in"?"on":"";$("tup").className=m==="up"?"on":"";
   $("a-c").hidden=m==="in";$("a-go").textContent=m==="in"?"Entrar":"Crear cuenta";
-  $("a-pass").autocomplete=m==="in"?"current-password":"new-password";$("a-err").textContent="";
+  $("a-pass").autocomplete=m==="in"?"current-password":"new-password";$("a-err").textContent="";$("a-ok").textContent="";$("a-fw").hidden=m!=="in";
 }
 $("tin").onclick=function(){setMode("in")};$("tup").onclick=function(){setMode("up")};
 function msg(e){var t=(e&&e.message)||"";
@@ -362,6 +384,28 @@ $("aform").onsubmit=function(ev){
     if(r.data&&r.data.session)enter(r.data.session.user);
     else err.textContent="Cuenta creada. Revisa tu correo para confirmarla y luego entra.";
   }).catch(function(){err.textContent="No hay conexión. Intenta de nuevo."}).then(function(){go.disabled=false});
+};
+function showRec(){$("aform").hidden=true;$("arec").hidden=false;$("a-sub").textContent="Recupera tu acceso";$("auth").hidden=false;$("app").hidden=true}
+$("a-forgot").onclick=function(){
+  var u=$("a-user").value.trim().toLowerCase(),err=$("a-err"),ok=$("a-ok"),b=this;err.textContent="";ok.textContent="";
+  if(!sb){err.textContent="Falta configurar Supabase en config.js.";return}
+  if(!/^\S+@\S+\.\S+$/.test(u)){err.textContent="Escribe tu correo arriba y toca de nuevo.";$("a-user").focus();return}
+  b.disabled=true;
+  sb.auth.resetPasswordForEmail(u,{redirectTo:location.origin+location.pathname}).then(function(r){
+    if(r.error){err.textContent=msg(r.error);return}
+    ok.textContent="Te enviamos un enlace a tu correo para crear una contraseña nueva. Revisa también la carpeta de spam."
+  }).catch(function(){err.textContent="No hay conexión. Intenta de nuevo."}).then(function(){b.disabled=false});
+};
+$("arec").onsubmit=function(ev){
+  ev.preventDefault();var p=$("a-new").value,e=$("a-rerr");e.textContent="";
+  if(p.length<6){e.textContent="La contraseña debe tener al menos 6 caracteres.";return}
+  if(p!==$("a-new2").value){e.textContent="Las contraseñas no coinciden.";return}
+  sb.auth.updateUser({password:p}).then(function(r){
+    if(r.error){e.textContent=msg(r.error);return}
+    REC=false;history.replaceState(null,"",location.pathname);toast("Contraseña actualizada ✓");
+    $("arec").hidden=true;$("aform").hidden=false;$("a-sub").textContent="Entra para ver y registrar tus gastos";
+    sb.auth.getSession().then(function(x){if(x.data&&x.data.session)enter(x.data.session.user)});
+  }).catch(function(){e.textContent="No hay conexión. Intenta de nuevo."});
 };
 function mapM(e){return{id:e.id,tipo:e.tipo||"gasto",amount:Number(e.amount),cat:e.cat,note:e.note||"",date:e.date,cuenta:e.cuenta_id,ts:Date.parse(e.created_at)||0}}
 function mapA(a){return{id:a.id,nombre:a.nombre,tipo:a.tipo,saldo:Number(a.saldo),limite:Number(a.limite||0)}}
@@ -683,12 +727,13 @@ $("sa").onclick=function(){
   up("cuentas",rec,eA).then(function(d){var x=mapA(d);S.acc=eA?S.acc.map(function(e){return e.id===eA?x:e}):S.acc.concat(x);$("da").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 document.addEventListener("click",function(ev){
-  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo],[data-sd],[data-ap],[data-sp],[data-spay],[data-sve],[data-svd],[data-newsv],[data-newcr],[data-pay],[data-cre],[data-crd],[data-qa],[data-qc],[data-qk],[data-qedit]");if(!t)return;var d=t.dataset;
+  var t=ev.target.closest("[data-m],[data-f],[data-go],[data-e],[data-d],[data-ae],[data-ad],[data-newacc],[data-ce],[data-cd],[data-newcat],[data-emo],[data-sd],[data-eye],[data-ap],[data-sp],[data-spay],[data-sve],[data-svd],[data-newsv],[data-newcr],[data-pay],[data-cre],[data-crd],[data-qa],[data-qc],[data-qk],[data-qedit]");if(!t)return;var d=t.dataset;
   if(d.m){cur.setMonth(cur.getMonth()+Number(d.m));render()}
   else if(d.f){flt=d.f;render()}
   else if(d.go){go(d.go)}
   else if(d.newacc){openA(null)}
   else if(d.sd){sd(false);if(d.sd==="srv")go("serv");else if(d.sd==="cat")go("cat");else if(d.sd==="ing"){openM(null);setTipo("ingreso")}else if(d.sd==="gas")openM(null);else if(d.sd==="atj"){openM(null);openQ()}}
+  else if(d.eye){var ip=$(d.eye),sh=ip.type==="password";ip.type=sh?"text":"password";t.textContent=sh?"🙈":"👁";t.setAttribute("aria-label",sh?"Ocultar contraseña":"Mostrar contraseña")}
   else if(d.ap){var q=d.ap.split("|");$("c-nom").value=q[0];$("c-tip").value=q[1];tipoA()}
   else if(d.sp){$("s-nom").value=d.sp}
   else if(d.newsv){openS(null)}
@@ -713,9 +758,13 @@ document.addEventListener("click",function(ev){
   else if(d.ad){askD("¿Eliminar esta cuenta? Sus movimientos quedarán sin cuenta.",function(){rm("cuentas",d.ad).then(function(){S.acc=S.acc.filter(function(x){return x.id!=d.ad});S.mov.forEach(function(x){if(x.cuenta==d.ad)x.cuenta=null});render()}).catch(fail)})}
 });
 theme(th);eyeUI();
-if(sb){sb.auth.getSession().then(function(r){
-  if(r.data&&r.data.session)enter(r.data.session.user);else{$("auth").hidden=false;setMode("in")}
-})}else{$("auth").hidden=false;setMode("in")}
+if(sb){
+  sb.auth.onAuthStateChange(function(ev){if(ev==="PASSWORD_RECOVERY")showRec()});
+  sb.auth.getSession().then(function(r){
+    if(REC){showRec();return}
+    if(r.data&&r.data.session)enter(r.data.session.user);
+    else{$("auth").hidden=false;setMode("in");if(EXP){$("a-err").textContent="El enlace venció o ya se usó. Pide uno nuevo con “¿Olvidaste tu contraseña?”.";history.replaceState(null,"",location.pathname)}}
+  })}else{$("auth").hidden=false;setMode("in")}
 })();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script>
