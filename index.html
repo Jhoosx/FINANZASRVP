@@ -173,7 +173,7 @@ input[type=color]{padding:4px;height:46px}
 <div class="wrap">
   <header>
     <div><h1 id="hi"></h1><span class="mute">Bienvenido de nuevo a tu control financiero</span></div>
-    <div class="hb"><button class="rb" id="theme" aria-label="Cambiar tema">☀</button><button class="rb gold" id="prof" aria-label="Perfil">👤</button></div>
+    <div class="hb"><button class="rb" id="eye" aria-label="Ocultar montos">👁</button><button class="rb" id="theme" aria-label="Cambiar tema">☀</button><button class="rb gold" id="prof" aria-label="Perfil">👤</button></div>
   </header>
   <section id="v-dash">
     <div class="dsk" id="d-top"></div>
@@ -329,7 +329,8 @@ var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
-var money=function(n){return "S/ "+Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})};
+var HID=false;try{HID=localStorage.getItem("gastos_hide")==="1"}catch(e){}
+var money=function(n){if(HID)return "S/ ••••";return "S/ "+Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})};
 var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function theme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("gastos_theme",t)}catch(e){}$("theme").textContent=t==="dark"?"☀":"☾";document.querySelector('meta[name=theme-color]').content=t==="dark"?"#0B0B0D":"#F5F2EA"}
 var th="dark";try{th=localStorage.getItem("gastos_theme")||"dark"}catch(e){}
@@ -387,6 +388,8 @@ function doOut(){
   sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
 };
 $("theme").onclick=function(){theme(document.documentElement.dataset.theme==="dark"?"light":"dark")};
+function eyeUI(){$("eye").textContent=HID?"🙈":"👁";$("eye").setAttribute("aria-label",HID?"Mostrar montos":"Ocultar montos")}
+$("eye").onclick=function(){HID=!HID;try{localStorage.setItem("gastos_hide",HID?"1":"0")}catch(e){}eyeUI();render()};
 function inM(m){return m.date.slice(0,7)===cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0")}
 function sum(t,l){return l.filter(function(m){return m.tipo===t&&m.cat!=="Pago de tarjeta"}).reduce(function(s,m){return s+m.amount},0)}
 function bal(a){var s=a.saldo;S.mov.forEach(function(m){if(m.cuenta===a.id){var d=m.tipo==="ingreso"?1:-1;s+=d*m.amount}});return s}
@@ -709,7 +712,7 @@ document.addEventListener("click",function(ev){
   else if(d.ae){var a=S.acc.filter(function(x){return x.id==d.ae})[0];if(a)openA(a)}
   else if(d.ad){askD("¿Eliminar esta cuenta? Sus movimientos quedarán sin cuenta.",function(){rm("cuentas",d.ad).then(function(){S.acc=S.acc.filter(function(x){return x.id!=d.ad});S.mov.forEach(function(x){if(x.cuenta==d.ad)x.cuenta=null});render()}).catch(fail)})}
 });
-theme(th);
+theme(th);eyeUI();
 if(sb){sb.auth.getSession().then(function(r){
   if(r.data&&r.data.session)enter(r.data.session.user);else{$("auth").hidden=false;setMode("in")}
 })}else{$("auth").hidden=false;setMode("in")}
