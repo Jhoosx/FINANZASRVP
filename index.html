@@ -133,6 +133,12 @@ input[type=color]{padding:4px;height:46px}
 #toast{position:fixed;inset:auto auto calc(110px + env(safe-area-inset-bottom,0px)) 50%;transform:translateX(-50%);margin:0;width:max-content;max-width:min(92vw,420px);background:var(--card);color:var(--ink);border:1px solid var(--line);padding:12px 16px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);font-weight:600;font-size:.92rem;text-align:center;overflow:visible}
 #dq{margin:auto;width:min(380px,calc(100% - 32px));max-width:none;border-radius:24px;padding:22px}
 .pri.dg{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px}
+.st>div{background:var(--c2);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:2px;min-width:0}
+.st b{font-size:.78rem}
+.dg{background:var(--c2);border:1px solid var(--line);border-radius:18px;padding:2px 14px;margin-top:12px}
+.dgh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0 8px;font-size:.9rem}
+.dgh b{text-transform:capitalize}.dgh .num{font-size:.85rem}
 </style>
 </head>
 <body>
@@ -367,22 +373,27 @@ function render(){
   function acc(a,full){var t=TIPOS[a.tipo]||TIPOS.banco;
     return '<div class="ac"'+(full?'':' data-go="bank" style="cursor:pointer"')+'><span class="chip big" style="color:'+t[1]+'">'+esc(a.nombre.slice(0,2).toUpperCase())+'</span><div><b>'+esc(a.nombre)+'</b><span class="mute">'+t[0]+(a.tipo==="credito"?(a.limite>0?" · línea "+money(a.limite)+" · usado "+money(deuda(a)):" · disponible"):"")+'</span></div><span class="num">'+money(bal(a))+'</span>'+(full?'<span><button class="x" data-ae="'+a.id+'" aria-label="Editar">✎</button><button class="x" data-ad="'+a.id+'" aria-label="Eliminar">✕</button></span>':'')+'</div>'}
   var none='<div class="empty">Aún no tienes cuentas.<br>Toca “Mis bancos” y agrega la primera.</div>';
-  var tb=S.acc.filter(function(a){return a.tipo!=="credito"}).reduce(function(s,a){return s+bal(a)},0),td=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+deuda(a)},0);
-  var nb=S.acc.filter(function(a){return a.tipo!=="credito"}).length,sb2=S.acc.filter(function(a){return a.tipo!=="credito"&&bal(a)>0}).map(function(a){return '<i style="flex:'+bal(a)+';background:'+(TIPOS[a.tipo]||TIPOS.banco)[1]+'"></i>'}).join("");
-  var tot=S.acc.length?'<div class="tot"><span class="mute">💰 Total en bancos y efectivo</span><div class="num tv">'+money(tb)+'</div>'+(sb2?'<div class="sbar">'+sb2+'</div>':'')+'<div class="tm"><span>'+nb+' cuenta'+(nb===1?'':'s')+'</span>'+(td?'<span class="r">Deuda en tarjetas '+money(-td)+'</span>':'<span></span>')+'</div></div>':"";
+  var tb=S.acc.reduce(function(s,a){return s+bal(a)},0),cd=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+Math.max(0,bal(a))},0),td=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+deuda(a)},0);
+  var nb=S.acc.length,sb2=S.acc.filter(function(a){return bal(a)>0}).map(function(a){return '<i style="flex:'+bal(a)+';background:'+(TIPOS[a.tipo]||TIPOS.banco)[1]+'"></i>'}).join("");
+  var tot=S.acc.length?'<div class="tot"><span class="mute">💰 Total disponible</span><div class="num tv">'+money(tb)+'</div>'+(sb2?'<div class="sbar">'+sb2+'</div>':'')+'<div class="tm"><span>'+nb+' cuenta'+(nb===1?'':'s')+(cd?' · incluye '+money(cd)+' de crédito':'')+'</span>'+(td?'<span class="r">Deuda en tarjetas '+money(-td)+'</span>':'<span></span>')+'</div></div>':"";
   $("accs").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,0)}).join(""):none)+tot;
   $("blist").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,1)}).join(""):none)+tot+'<button class="btn" data-newacc="1">+ Agregar cuenta</button>';
   var by={};l.forEach(function(m){if(m.tipo==="gasto"&&m.cat!=="Pago de tarjeta")by[m.cat]=(by[m.cat]||0)+m.amount});
   var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
   $("cats").innerHTML=ks.length?ks.map(function(k){var c=cat(k);return '<div class="cat"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div>'+esc(k)+'<div class="bar"><i style="width:'+(by[k]/exp*100)+'%;background:'+c[2]+'"></i></div></div><b class="num">'+money(by[k])+'</b></div>'}).join(""):'<div class="empty">Sin gastos este mes.</div>';
-  $("mbar").innerHTML=mb("Movimientos");
-  $("flt").innerHTML=[["all","Todos"],["ingreso","Ingresos"],["gasto","Gastos"]].map(function(f){return '<button class="fl'+(flt===f[0]?' on':'')+'" data-f="'+f[0]+'">'+f[1]+'</button>'}).join("");
+  $("mbar").innerHTML=mb("Movimientos")+'<div class="st"><div><span class="mute">Ingresos</span><b class="num g">'+money(inc)+'</b></div><div><span class="mute">Gastos</span><b class="num r">'+money(exp)+'</b></div><div><span class="mute">Balance</span><b class="num y">'+money(inc-exp)+'</b></div></div>';
+  $("flt").innerHTML=[["all","Todos",l.length],["ingreso","Ingresos",l.filter(function(m){return m.tipo==="ingreso"}).length],["gasto","Gastos",l.filter(function(m){return m.tipo==="gasto"}).length]].map(function(f){return '<button class="fl'+(flt===f[0]?' on':'')+'" data-f="'+f[0]+'">'+f[1]+' · '+f[2]+'</button>'}).join("");
   var ml=l.filter(function(m){return flt==="all"||m.tipo===flt}).sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts});
   if(!ml.length){$("list").innerHTML='<div class="empty">No hay movimientos en este mes.<br>Toca + para registrar el primero.</div>';return}
-  var h="",last="";
-  ml.forEach(function(m){var c=cat(m.cat),i=m.tipo==="ingreso";
-    if(m.date!==last){last=m.date;h+='<div class="day">'+new Date(m.date+"T00:00:00").toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"short"})+'</div>'}
-    h+='<div class="row"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||m.cat)+'</b><span class="mute">'+esc(accName(m.cuenta))+' · '+esc(m.cat)+'</span></div><span class="num '+(i?"g":"r")+'">'+(i?"+":"-")+money(m.amount)+'</span><span><button class="x" data-e="'+m.id+'" aria-label="Editar">✎</button><button class="x" data-d="'+m.id+'" aria-label="Eliminar">✕</button></span></div>'});
+  var G={},ord=[];
+  ml.forEach(function(m){if(!G[m.date]){G[m.date]=[];ord.push(m.date)}G[m.date].push(m)});
+  var h="";
+  ord.forEach(function(d){
+    var L=G[d],ti=sum("ingreso",L),tg=sum("gasto",L),dl=dleft(d);
+    var nm=dl===0?"Hoy":dl===-1?"Ayer":new Date(d+"T00:00:00").toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"short"});
+    h+='<div class="dg"><div class="dgh"><b>'+nm+'</b><span>'+(ti?'<span class="num g">+'+money(ti)+'</span> ':'')+(tg?'<span class="num r">-'+money(tg)+'</span>':'')+'</span></div>'+L.map(function(m){
+      var c=cat(m.cat),i=m.tipo==="ingreso",t=m.cat==="Pago de tarjeta";
+      return '<div class="row"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||m.cat)+'</b><span class="mute">'+esc(accName(m.cuenta))+' · '+esc(m.cat)+(t?' · transferencia':'')+'</span></div><span class="num '+(t?"y":i?"g":"r")+'">'+(i?"+":"-")+money(m.amount)+'</span><span><button class="x" data-e="'+m.id+'" aria-label="Editar">✎</button><button class="x" data-d="'+m.id+'" aria-label="Eliminar">✕</button></span></div>'}).join("")+'</div>'});
   $("list").innerHTML=h;
 }
 function pad(n){return String(n).padStart(2,"0")}
