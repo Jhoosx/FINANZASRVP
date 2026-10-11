@@ -406,7 +406,7 @@ function render(){
   var none='<div class="empty">Aún no tienes cuentas.<br>Toca “Mis bancos” y agrega la primera.</div>';
   var tb=S.acc.reduce(function(s,a){return s+bal(a)},0),cd=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+Math.max(0,bal(a))},0),td=S.acc.filter(function(a){return a.tipo==="credito"}).reduce(function(s,a){return s+deuda(a)},0);
   var nb=S.acc.length,sb2=S.acc.filter(function(a){return bal(a)>0}).map(function(a){return '<i style="flex:'+bal(a)+';background:'+bcol(a)+'"></i>'}).join("");
-  var tot=S.acc.length?'<div class="tot"><span class="mute">💰 Total disponible</span><div class="num tv">'+money(tb)+'</div>'+(sb2?'<div class="sbar">'+sb2+'</div>':'')+'<div class="tm"><span>'+nb+' cuenta'+(nb===1?'':'s')+(cd?' · incluye '+money(cd)+' de crédito':'')+'</span>'+(td?'<span class="r">Deuda en tarjetas '+money(-td)+'</span>':'<span></span>')+'</div></div>':"";
+  var tot=S.acc.length?'<div class="tot"><span class="mute">💰 Total disponible</span><div class="num tv">'+money(tb)+'</div>'+(sb2?'<div class="sbar">'+sb2+'</div>':'')+'<div class="tm"><span>'+nb+' cuenta'+(nb===1?'':'s')+'</span>'+'</div></div>':"";
   $("accs").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,0)}).join(""):none)+tot;
   $("blist").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,1)}).join(""):none)+tot+'<button class="btn" data-newacc="1">+ Agregar cuenta</button>';
   var by={};l.forEach(function(m){if(m.tipo==="gasto"&&m.cat!=="Pago de tarjeta")by[m.cat]=(by[m.cat]||0)+m.amount});
