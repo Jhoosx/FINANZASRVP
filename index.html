@@ -144,7 +144,11 @@ input[type=color]{padding:4px;height:46px}
 .lg span{display:inline-flex;align-items:center;gap:5px}.lg i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .ac{position:relative;padding-left:24px}
 .ac::before{content:"";position:absolute;left:9px;top:14px;bottom:14px;width:4px;border-radius:4px;background:var(--bc,var(--gold))}
-#auth{background:radial-gradient(70% 55% at 50% -5%,color-mix(in srgb,var(--gold) 20%,transparent),transparent 70%),var(--bg)}
+#auth{background:linear-gradient(rgba(8,8,10,.30),rgba(8,8,10,.72)),url(img/login-movil.jpg) center/cover no-repeat,#0b0b0d}
+.acard{background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+@media(min-width:800px){#auth{background:linear-gradient(90deg,rgba(8,8,10,.10),rgba(8,8,10,.66)),url(img/login-pc.jpg) 40% center/cover no-repeat,#0b0b0d;justify-items:end;padding-right:max(24px,9vw)}}
+.pe svg,.rb svg{display:block;margin:auto}
+@media(max-width:799px){#auth{background-image:linear-gradient(rgba(8,8,10,.10),rgba(8,8,10,.48)),url(img/login-movil.jpg);background-position:center bottom}.acard{background:color-mix(in srgb,var(--card) 48%,transparent);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}}
 .acard{width:min(420px,100%);margin-top:46px;padding:34px 28px 24px;border-radius:30px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
 .logo{display:block;width:92px;height:92px;margin:-80px auto 14px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);box-shadow:0 0 0 7px color-mix(in srgb,var(--gold) 14%,transparent),0 14px 34px rgba(0,0,0,.55);background:var(--c2)}
 .acard h2{font-size:1.75rem;letter-spacing:-.02em}
@@ -170,8 +174,8 @@ input[type=color]{padding:4px;height:46px}
       <label for="a-user">Correo</label>
       <input id="a-user" type="email" autocomplete="username" autocapitalize="none" placeholder="tucorreo@ejemplo.com" required>
       <label for="a-pass">Contraseña</label>
-      <div class="pw"><input id="a-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña" required><button type="button" class="pe" data-eye="a-pass" aria-label="Mostrar contraseña">👁</button></div>
-      <div id="a-c" hidden><label for="a-pass2">Repite la contraseña</label><div class="pw"><input id="a-pass2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-pass2" aria-label="Mostrar contraseña">👁</button></div></div>
+      <div class="pw"><input id="a-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña" required><button type="button" class="pe" data-eye="a-pass" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div id="a-c" hidden><label for="a-pass2">Repite la contraseña</label><div class="pw"><input id="a-pass2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-pass2" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
       <div class="fw" id="a-fw"><button type="button" class="fgt" id="a-forgot">¿Olvidaste tu contraseña?</button></div>
       <div class="err" id="a-err" role="alert"></div>
       <div class="okm" id="a-ok" role="status"></div>
@@ -181,9 +185,9 @@ input[type=color]{padding:4px;height:46px}
       <h3 style="text-align:center;margin:0 0 4px;font-size:1.15rem">Crea tu nueva contraseña</h3>
       <p class="mute" style="text-align:center;margin:0 0 6px;font-size:.88rem">Elige una que no hayas usado antes.</p>
       <label for="a-new">Nueva contraseña</label>
-      <div class="pw"><input id="a-new" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><button type="button" class="pe" data-eye="a-new" aria-label="Mostrar contraseña">👁</button></div>
+      <div class="pw"><input id="a-new" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><button type="button" class="pe" data-eye="a-new" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <label for="a-new2">Repite la contraseña</label>
-      <div class="pw"><input id="a-new2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-new2" aria-label="Mostrar contraseña">👁</button></div>
+      <div class="pw"><input id="a-new2" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"><button type="button" class="pe" data-eye="a-new2" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <div class="err" id="a-rerr" role="alert"></div>
       <button class="btn" type="submit">Guardar contraseña</button>
     </form>
@@ -195,7 +199,7 @@ input[type=color]{padding:4px;height:46px}
 <div class="wrap">
   <header>
     <div><h1 id="hi"></h1><span class="mute">Bienvenido de nuevo a tu control financiero</span></div>
-    <div class="hb"><button class="rb" id="eye" aria-label="Ocultar montos">👁</button><button class="rb" id="theme" aria-label="Cambiar tema">☀</button><button class="rb gold" id="prof" aria-label="Perfil">👤</button></div>
+    <div class="hb"><button class="rb" id="eye" aria-label="Ocultar montos"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="rb" id="theme" aria-label="Cambiar tema">☀</button><button class="rb gold" id="prof" aria-label="Perfil">👤</button></div>
   </header>
   <section id="v-dash">
     <div class="dsk" id="d-top"></div>
@@ -351,6 +355,7 @@ var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
+var EYE='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',EYEOFF='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 var HID=false;try{HID=localStorage.getItem("gastos_hide")==="1"}catch(e){}
 var money=function(n){if(HID)return "S/ ••••";return "S/ "+Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})};
 var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -432,7 +437,7 @@ function doOut(){
   sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
 };
 $("theme").onclick=function(){theme(document.documentElement.dataset.theme==="dark"?"light":"dark")};
-function eyeUI(){$("eye").textContent=HID?"🙈":"👁";$("eye").setAttribute("aria-label",HID?"Mostrar montos":"Ocultar montos")}
+function eyeUI(){$("eye").innerHTML=HID?EYEOFF:EYE;$("eye").setAttribute("aria-label",HID?"Mostrar montos":"Ocultar montos")}
 $("eye").onclick=function(){HID=!HID;try{localStorage.setItem("gastos_hide",HID?"1":"0")}catch(e){}eyeUI();render()};
 function inM(m){return m.date.slice(0,7)===cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,"0")}
 function sum(t,l){return l.filter(function(m){return m.tipo===t&&m.cat!=="Pago de tarjeta"}).reduce(function(s,m){return s+m.amount},0)}
@@ -733,7 +738,7 @@ document.addEventListener("click",function(ev){
   else if(d.go){go(d.go)}
   else if(d.newacc){openA(null)}
   else if(d.sd){sd(false);if(d.sd==="srv")go("serv");else if(d.sd==="cat")go("cat");else if(d.sd==="ing"){openM(null);setTipo("ingreso")}else if(d.sd==="gas")openM(null);else if(d.sd==="atj"){openM(null);openQ()}}
-  else if(d.eye){var ip=$(d.eye),sh=ip.type==="password";ip.type=sh?"text":"password";t.textContent=sh?"🙈":"👁";t.setAttribute("aria-label",sh?"Ocultar contraseña":"Mostrar contraseña")}
+  else if(d.eye){var ip=$(d.eye),sh=ip.type==="password";ip.type=sh?"text":"password";t.innerHTML=sh?EYEOFF:EYE;t.setAttribute("aria-label",sh?"Ocultar contraseña":"Mostrar contraseña")}
   else if(d.ap){var q=d.ap.split("|");$("c-nom").value=q[0];$("c-tip").value=q[1];tipoA()}
   else if(d.sp){$("s-nom").value=d.sp}
   else if(d.newsv){openS(null)}
