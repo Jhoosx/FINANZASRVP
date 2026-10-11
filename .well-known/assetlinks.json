@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "app.vercel.finanzasravp.twa",
-        "sha256_cert_fingerprints": ["7A:96:B4:6F:2B:E9:E7:13:0F:CE:AA:10:7F:23:99:F6:2E:7C:CB:9D:18:AB:41:2B:41:B0:DA:4A:9D:66:A5:91"]
+        "sha256_cert_fingerprints": ["3E:13:41:5E:DA:48:FB:EF:A6:F4:A9:CF:B4:30:F4:FA:F2:E7:05:93:C2:F7:00:46:5F:57:FB:3B:A1:2E:0F:68"]
       }
     }]
