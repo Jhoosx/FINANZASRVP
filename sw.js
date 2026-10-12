@@ -1,4 +1,4 @@
-const CACHE = "gastos-v23";
+const CACHE = "gastos-v24";
 const FILES = ["./", "./index.html", "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-512-maskable.png"];
 
 self.addEventListener("install", e => {
@@ -17,6 +17,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   if (new URL(e.request.url).origin !== self.location.origin) return;
+  if (/\.(mp4|webm)$/i.test(new URL(e.request.url).pathname)) return;
   e.respondWith(
     fetch(e.request).then(res => {
       const copy = res.clone();

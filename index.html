@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>JHOSX</title>
+<title>Mis Gastos</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B0B0D">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -146,7 +146,12 @@ input[type=color]{padding:4px;height:46px}
 .ac::before{content:"";position:absolute;left:9px;top:14px;bottom:14px;width:4px;border-radius:4px;background:var(--bc,var(--gold))}
 #auth{background:linear-gradient(rgba(8,8,10,.30),rgba(8,8,10,.72)),url(img/login-movil.jpg) center/cover no-repeat,#0b0b0d}
 .acard{background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-@media(min-width:800px){#auth{background:linear-gradient(90deg,rgba(8,8,10,.10),rgba(8,8,10,.66)),url(img/login-pc.jpg) 40% center/cover no-repeat,#0b0b0d;justify-items:end;padding-right:max(24px,9vw)}}
+.bgv{display:none}
+@media(min-width:800px){
+#auth{background:url(img/login-pc-poster.jpg) center/cover no-repeat,#0b0b0d;justify-items:end;padding-right:max(24px,9vw);position:relative;overflow:hidden}
+#auth::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,8,10,.15),rgba(8,8,10,.7));pointer-events:none}
+.bgv{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.acard{position:relative;z-index:1}}
 .pe svg,.rb svg{display:block;margin:auto}
 @media(max-width:799px){#auth{background-image:linear-gradient(rgba(8,8,10,.10),rgba(8,8,10,.48)),url(img/login-movil.jpg);background-position:center bottom}.acard{background:color-mix(in srgb,var(--card) 48%,transparent);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}}
 .acard{width:min(420px,100%);margin-top:46px;padding:34px 28px 24px;border-radius:30px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
@@ -165,9 +170,10 @@ input[type=color]{padding:4px;height:46px}
 </head>
 <body>
 <main id="auth" hidden>
+    <video id="bgv" class="bgv" muted loop playsinline preload="auto" poster="img/login-pc-poster.jpg" data-mp4="img/login-pc.mp4" data-webm="img/login-pc.webm" aria-hidden="true"></video>
   <div class="acard">
     <img class="logo" src="icons/icon-192.png" alt="Mis Gastos" width="92" height="92">
-    <h2>JHOOSX</h2>
+    <h2>Mis Gastos</h2>
     <p class="mute" id="a-sub">Entra para ver y registrar tus gastos</p>
     <form id="aform" autocomplete="on">
       <div class="seg" role="tablist"><button type="button" id="tin" class="on">Entrar</button><button type="button" id="tup">Crear cuenta</button></div>
@@ -390,7 +396,9 @@ $("aform").onsubmit=function(ev){
     else err.textContent="Cuenta creada. Revisa tu correo para confirmarla y luego entra.";
   }).catch(function(){err.textContent="No hay conexión. Intenta de nuevo."}).then(function(){go.disabled=false});
 };
-function showRec(){$("aform").hidden=true;$("arec").hidden=false;$("a-sub").textContent="Recupera tu acceso";$("auth").hidden=false;$("app").hidden=true}
+function bgv(on){var v=$("bgv");if(!v||!matchMedia("(min-width:800px)").matches||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  if(on){if(!v.getAttribute("src"))v.src=v.canPlayType('video/mp4; codecs="avc1.42E01E"')?v.dataset.mp4:v.dataset.webm;v.muted=true;var q=v.play();if(q&&q.catch)q.catch(function(){})}else v.pause()}
+function showRec(){$("aform").hidden=true;$("arec").hidden=false;$("a-sub").textContent="Recupera tu acceso";$("auth").hidden=false;$("app").hidden=true;bgv(true)}
 $("a-forgot").onclick=function(){
   var u=$("a-user").value.trim().toLowerCase(),err=$("a-err"),ok=$("a-ok"),b=this;err.textContent="";ok.textContent="";
   if(!sb){err.textContent="Falta configurar Supabase en config.js.";return}
@@ -424,7 +432,7 @@ function enter(user){
   }).then(function(){
     applyCats();greet();showAv(S.prof.foto||"");
     $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
-    $("auth").hidden=true;$("app").hidden=false;cur=new Date();cur.setDate(1);go("dash");render();
+    $("auth").hidden=true;$("app").hidden=false;bgv(false);cur=new Date();cur.setDate(1);go("dash");render();
   }).catch(function(){
     toast("No se pudieron cargar tus datos. Ejecuta supabase-v6.sql en Supabase y revisa tu conexión.");
     $("auth").hidden=false;$("app").hidden=true;
@@ -434,7 +442,7 @@ $("prof").onclick=function(){go("prof")};
 $("lo").onclick=function(){
   ask({t:"Cerrar sesión",m:"¿Quieres salir de tu cuenta?",ok:"Salir",dg:1},doOut)};
 function doOut(){
-  sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]};$("app").hidden=true;$("auth").hidden=false;setMode("in")});
+  sb.auth.signOut().then(function(){U=null;S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]};$("app").hidden=true;$("auth").hidden=false;setMode("in");bgv(true)});
 };
 $("theme").onclick=function(){theme(document.documentElement.dataset.theme==="dark"?"light":"dark")};
 function eyeUI(){$("eye").innerHTML=HID?EYEOFF:EYE;$("eye").setAttribute("aria-label",HID?"Mostrar montos":"Ocultar montos")}
@@ -768,8 +776,8 @@ if(sb){
   sb.auth.getSession().then(function(r){
     if(REC){showRec();return}
     if(r.data&&r.data.session)enter(r.data.session.user);
-    else{$("auth").hidden=false;setMode("in");if(EXP){$("a-err").textContent="El enlace venció o ya se usó. Pide uno nuevo con “¿Olvidaste tu contraseña?”.";history.replaceState(null,"",location.pathname)}}
-  })}else{$("auth").hidden=false;setMode("in")}
+    else{$("auth").hidden=false;setMode("in");bgv(true);if(EXP){$("a-err").textContent="El enlace venció o ya se usó. Pide uno nuevo con “¿Olvidaste tu contraseña?”.";history.replaceState(null,"",location.pathname)}}
+  })}else{$("auth").hidden=false;setMode("in");bgv(true)}
 })();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script>
