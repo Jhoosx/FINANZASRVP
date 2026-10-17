@@ -470,7 +470,7 @@ var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#4C9BF0"],["Hogar
 var DEF=CATS;
 var TIPOS={banco:["Banco","#8B7CF6"],credito:["Tarjeta de crédito","#E8B86A"],efectivo:["Efectivo","#5B9DF0"]};
 var $=function(i){return document.getElementById(i)};
-var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,MS="",REC=/type=recovery/.test(location.hash),EXP=/otp_expired|access_denied/.test(location.hash),tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
+var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,MS="",vst=[],curV="dash",dstack=[],REC=/type=recovery/.test(location.hash),EXP=/otp_expired|access_denied/.test(location.hash),tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
@@ -545,7 +545,7 @@ function enter(user){
   }).then(function(){
     applyCats();greet();showAv(S.prof.foto||"");
     $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
-    $("auth").hidden=true;$("app").hidden=false;bgv(false);cur=new Date();cur.setDate(1);go("dash");render();autoPay();
+    $("auth").hidden=true;$("app").hidden=false;bgv(false);cur=new Date();cur.setDate(1);vst=[];curV="dash";go("dash");render();autoPay();
   }).catch(function(){
     toast("No se pudieron cargar tus datos. Ejecuta supabase-v6.sql en Supabase y revisa tu conexión.");
     $("auth").hidden=false;$("app").hidden=true;
@@ -863,7 +863,7 @@ function countUp(el,to){
   if(HID||matchMedia("(prefers-reduced-motion:reduce)").matches){el.textContent=money(to);lastHv=to;return}
   var from=lastHv,t0=performance.now();
   (function f(t){var k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.textContent=money(from+(to-from)*e);if(k<1)requestAnimationFrame(f);else lastHv=to})(t0)}
-function go(v){["dash","mov","bank","cat","prof","cred","serv"].forEach(function(x){$("v-"+x).hidden=x!==v});
+function go(v,back){if(!back&&v!==curV){vst.push(curV);if(vst.length>20)vst.shift()}curV=v;if(v==="dash")vst=[];if(!(history.state&&history.state.app))history.pushState({app:1},"");["dash","mov","bank","cat","prof","cred","serv"].forEach(function(x){$("v-"+x).hidden=x!==v});
   Array.prototype.forEach.call(document.querySelectorAll(".nav button"),function(b){b.classList.toggle("on",b.dataset.go===v)});
   sd(false);$("sd").style.display=v==="dash"?"none":"";$("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
 function fail(){toast("No se pudo completar. Revisa tu conexión e intenta de nuevo.")}
@@ -957,6 +957,18 @@ document.addEventListener("click",function(ev){
 });
 theme(th);eyeUI();
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&U)autoPay()});
+var _sm=HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal=function(){if(dstack.indexOf(this)<0)dstack.push(this);_sm.call(this)};
+document.addEventListener("close",function(e){var i=dstack.indexOf(e.target);if(i>=0)dstack.splice(i,1)},true);
+window.addEventListener("popstate",function(e){
+  if($("app").hidden)return;
+  if(e.state&&e.state.app)return;
+  if(!$("sdm").hidden){history.pushState({app:1},"");sd(false);return}
+  while(dstack.length&&!dstack[dstack.length-1].open)dstack.pop();
+  if(dstack.length){history.pushState({app:1},"");dstack[dstack.length-1].close();return}
+  if(curV!=="dash"||vst.length){var pv=vst.pop()||"dash";history.pushState({app:1},"");go(pv,true);return}
+  toast("Presiona atrás otra vez para salir");
+});
 if(sb){
   sb.auth.onAuthStateChange(function(ev){if(ev==="PASSWORD_RECOVERY")showRec()});
   sb.auth.getSession().then(function(r){
