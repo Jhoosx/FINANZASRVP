@@ -254,11 +254,59 @@ button:not(.pe):not(.fab):not(.qi):active:not(:disabled){transform:scale(.96)}
 dialog[open] .pmav,#v-prof:not([hidden]) .avwrap .av{animation:pop .55s cubic-bezier(.2,.8,.2,1) both}
 dialog[open] .pml>*{animation:up .4s cubic-bezier(.2,.8,.2,1) both}
 .pml>:nth-child(2){animation-delay:.05s}.pml>:nth-child(3){animation-delay:.1s}.pml>:nth-child(4){animation-delay:.15s}.pml>:nth-child(5){animation-delay:.2s}.pml>:nth-child(6){animation-delay:.25s}
+/* ===== Animaciones elegantes ===== */
+#auth{background:#0b0b0d!important;position:relative;overflow:hidden}
+#auth::before{content:"";position:absolute;inset:-5%;z-index:0;background:url(img/login-movil.jpg) center bottom/cover no-repeat;animation:kb 28s ease-in-out infinite alternate}
+.acard{position:relative;z-index:1;animation:cardIn .9s cubic-bezier(.2,.8,.2,1) both}
+@media(max-width:799px){#auth::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(8,8,10,.10),rgba(8,8,10,.5));pointer-events:none}}
+@media(min-width:800px){#auth::before{inset:0;background:url(img/login-pc-poster.jpg) center/cover no-repeat;animation:none}.pts i:nth-child(n+9){display:none}}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.12) translate(-1.5%,-1%)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes ring{0%,100%{box-shadow:0 0 0 7px color-mix(in srgb,var(--gold) 14%,transparent),0 14px 34px rgba(0,0,0,.55)}50%{box-shadow:0 0 0 13px color-mix(in srgb,var(--gold) 5%,transparent),0 14px 34px rgba(0,0,0,.55)}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shine{0%,70%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
+@keyframes rise{0%{transform:translate(0,0) scale(.6);opacity:0}15%{opacity:.85}85%{opacity:.55}100%{transform:translate(var(--dx,20px),-105vh) scale(1);opacity:0}}
+@keyframes authOut{to{opacity:0;transform:scale(1.04)}}
+@keyframes hdrIn{from{transform:translateY(-100%);opacity:0}to{transform:none;opacity:1}}
+@keyframes heroIn{from{opacity:0;transform:translateY(26px) scale(.93)}to{opacity:1;transform:none}}
+@keyframes navIn{from{transform:translateY(100%)}to{transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+.acard>.logo{animation:pop .8s .1s cubic-bezier(.2,.8,.2,1) both,ring 4s 1.2s ease-in-out infinite}
+.acard>h2,.acard>p{animation:up .7s .25s cubic-bezier(.2,.8,.2,1) both}
+#aform>*{animation:up .6s cubic-bezier(.2,.8,.2,1) both}
+#aform>:nth-child(1){animation-delay:.35s}#aform>:nth-child(2){animation-delay:.4s}#aform>:nth-child(3){animation-delay:.45s}#aform>:nth-child(4){animation-delay:.5s}
+#aform>:nth-child(5){animation-delay:.55s}#aform>:nth-child(6){animation-delay:.6s}#aform>:nth-child(7){animation-delay:.65s}#aform>:nth-child(8){animation-delay:.7s}
+#aform>:nth-child(n+9){animation-delay:.75s}
+#a-c:not([hidden]){animation:up .4s cubic-bezier(.2,.8,.2,1) 0s both}
+.sec2{animation:fade .8s 1s both}
+#aform .seg{position:relative}
+#aform .seg::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:var(--card);border-radius:9px;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+#aform .seg.up::before{transform:translateX(100%)}
+#aform .seg button{position:relative;z-index:1}
+#aform .seg button.on{background:none;box-shadow:none}
+.err:not(:empty){animation:shake .45s}
+.acard .btn{position:relative;overflow:hidden}
+.acard .btn::before{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);animation:shine 5s 1.5s infinite}
+.acard .btn:disabled{opacity:.8;cursor:progress}
+.acard .btn:disabled::after{content:"";position:absolute;right:18px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;border:2px solid rgba(26,19,8,.25);border-top-color:#1a1308;animation:spin .7s linear infinite}
+.pts{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.pts i{position:absolute;bottom:-12px;border-radius:50%;background:rgba(255,214,140,.9);box-shadow:0 0 10px rgba(255,200,120,.9);opacity:0;animation:rise linear infinite}
+#auth.out{pointer-events:none;animation:authOut .45s ease forwards}
+#app.in header{animation:hdrIn .65s cubic-bezier(.2,.8,.2,1) both}
+#app.in .hero{animation:heroIn .75s .15s cubic-bezier(.2,.9,.3,1.05) both}
+#app.in .qa button{animation:pop .55s cubic-bezier(.2,.8,.2,1) both}
+.qa button:nth-child(1){animation-delay:.35s}.qa button:nth-child(2){animation-delay:.4s}.qa button:nth-child(3){animation-delay:.45s}.qa button:nth-child(4){animation-delay:.5s}
+.qa button:nth-child(5){animation-delay:.55s}.qa button:nth-child(6){animation-delay:.6s}.qa button:nth-child(7){animation-delay:.65s}.qa button:nth-child(8){animation-delay:.7s}
+#app.in .nav{animation:navIn .6s .25s cubic-bezier(.2,.8,.2,1) both}
+.nav button.on::after{animation:grow .35s both}
+#toast:popover-open{animation:toastIn .35s cubic-bezier(.2,.8,.2,1)}
 </style>
 </head>
 <body>
 <main id="auth" hidden>
     <video id="bgv" class="bgv" muted loop playsinline preload="auto" poster="img/login-pc-poster.jpg" data-mp4="img/login-pc.mp4" data-webm="img/login-pc.webm" aria-hidden="true"></video>
+    <div class="pts" id="pts" aria-hidden="true"></div>
   <div class="acard">
     <img class="logo" src="icons/icon-192.png" alt="Mis Gastos" width="92" height="92">
     <h2>Mis Gastos</h2>
@@ -470,7 +518,7 @@ var CATS=[["Comida","🍽️","#E58A3A"],["Transporte","🚌","#4C9BF0"],["Hogar
 var DEF=CATS;
 var TIPOS={banco:["Banco","#8B7CF6"],credito:["Tarjeta de crédito","#E8B86A"],efectivo:["Efectivo","#5B9DF0"]};
 var $=function(i){return document.getElementById(i)};
-var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,MS="",vst=[],curV="dash",dstack=[],REC=/type=recovery/.test(location.hash),EXP=/otp_expired|access_denied/.test(location.hash),tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
+var U=null,EM="",S={acc:[],mov:[],cats:[],prof:{},cred:[],serv:[]},mode="in",cur=new Date(),tipo="gasto",flt="all",eM=null,eA=null,eC=null,eR=null,eP=null,eS=null,MS="",vst=[],curV="dash",dstack=[],HB=0,cuId=0,REC=/type=recovery/.test(location.hash),EXP=/otp_expired|access_denied/.test(location.hash),tt=null,qcb=null,photo=null,quick=false,qa=0,qc="",qk="",PRE=[1,2,3,5,10,15,20,30,50,100];
 cur.setDate(1);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function cat(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i];return[c,"📦","#8E9A97"]}
@@ -484,7 +532,7 @@ var th="light";try{th=localStorage.getItem("gastos_theme2")||"light"}catch(e){}
 var sb=null;try{sb=supabase.createClient(window.SB_URL,window.SB_KEY)}catch(e){}
 function setMode(m){
   mode=m;$("tin").className=m==="in"?"on":"";$("tup").className=m==="up"?"on":"";
-  $("a-c").hidden=m==="in";$("a-go").textContent=m==="in"?"Entrar":"Crear cuenta";
+  $("a-c").hidden=m==="in";$("aform").querySelector(".seg").classList.toggle("up",m==="up");$("a-go").textContent=m==="in"?"Entrar":"Crear cuenta";
   $("a-pass").autocomplete=m==="in"?"current-password":"new-password";$("a-err").textContent="";$("a-ok").textContent="";$("a-fw").hidden=m!=="in";
 }
 $("tin").onclick=function(){setMode("in")};$("tup").onclick=function(){setMode("up")};
@@ -545,7 +593,7 @@ function enter(user){
   }).then(function(){
     applyCats();greet();showAv(S.prof.foto||"");
     $("a-pass").value="";$("a-pass2").value="";$("a-err").textContent="";
-    $("auth").hidden=true;$("app").hidden=false;bgv(false);cur=new Date();cur.setDate(1);vst=[];curV="dash";go("dash");render();autoPay();
+    showApp();cur=new Date();cur.setDate(1);vst=[];curV="dash";go("dash");render();autoPay();
   }).catch(function(){
     toast("No se pudieron cargar tus datos. Ejecuta supabase-v6.sql en Supabase y revisa tu conexión.");
     $("auth").hidden=false;$("app").hidden=true;
@@ -580,7 +628,7 @@ function render(){
   $("accs").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,0)}).join(""):none);
   var mname=cur.toLocaleDateString("es-PE",{month:"long"});
   $("hero").innerHTML='<span class="hl">Saldo disponible</span><div class="num hv" id="hv"></div><div class="hs"><span><small class="mute">Ingresos · '+mname+'</small><b class="num g">'+money(inc)+'</b></span><span><small class="mute">Gastos · '+mname+'</small><b class="num r">'+money(exp)+'</b></span></div>';
-  countUp($("hv"),tb);
+  HB=tb;countUp($("hv"),tb);
   $("blist").innerHTML=(S.acc.length?S.acc.map(function(a){return acc(a,1)}).join(""):none)+tot+'<button class="btn" data-newacc="1">+ Agregar cuenta</button>';
   var by={};l.forEach(function(m){if(m.tipo==="gasto"&&!isTr(m))by[m.cat]=(by[m.cat]||0)+m.amount});
   var ks=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
@@ -861,8 +909,14 @@ $("pm").onclick=function(e){if(e.target===this)this.close()};
 var lastHv=0;
 function countUp(el,to){
   if(HID||matchMedia("(prefers-reduced-motion:reduce)").matches){el.textContent=money(to);lastHv=to;return}
-  var from=lastHv,t0=performance.now();
-  (function f(t){var k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.textContent=money(from+(to-from)*e);if(k<1)requestAnimationFrame(f);else lastHv=to})(t0)}
+  var my=++cuId,from=lastHv,t0=performance.now();
+  (function f(t){if(my!==cuId)return;var k=Math.min(1,(t-t0)/700),e=1-Math.pow(1-k,3);el.textContent=money(from+(to-from)*e);if(k<1)requestAnimationFrame(f);else lastHv=to})(t0)}
+function showApp(){
+  var a=$("auth"),ap=$("app");
+  function fin(){a.hidden=true;a.classList.remove("out");bgv(false);ap.hidden=false;ap.classList.remove("in");void ap.offsetWidth;ap.classList.add("in");lastHv=0;countUp($("hv"),HB);setTimeout(function(){ap.classList.remove("in")},1800)}
+  if(a.hidden){fin();return}
+  a.classList.add("out");setTimeout(fin,430)}
+(function(){var h="";for(var i=0;i<14;i++){var sz=2+Math.random()*3;h+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;width:'+sz.toFixed(1)+'px;height:'+sz.toFixed(1)+'px;animation-duration:'+(9+Math.random()*10).toFixed(1)+'s;animation-delay:-'+(Math.random()*14).toFixed(1)+'s;--dx:'+((Math.random()-.5)*80).toFixed(0)+'px"></i>'}$("pts").innerHTML=h})();
 function go(v,back){if(!back&&v!==curV){vst.push(curV);if(vst.length>20)vst.shift()}curV=v;if(v==="dash")vst=[];if(!(history.state&&history.state.app))history.pushState({app:1},"");["dash","mov","bank","cat","prof","cred","serv"].forEach(function(x){$("v-"+x).hidden=x!==v});
   Array.prototype.forEach.call(document.querySelectorAll(".nav button"),function(b){b.classList.toggle("on",b.dataset.go===v)});
   sd(false);$("sd").style.display=v==="dash"?"none":"";$("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
