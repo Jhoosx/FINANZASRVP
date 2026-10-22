@@ -515,6 +515,8 @@ dialog[open] .pml>*{animation:up .4s cubic-bezier(.2,.8,.2,1) both}
   <label for="h-mon">Monto cada vez (S/)</label><input id="h-mon" type="number" inputmode="decimal" step="0.01" placeholder="0.00">
   <label for="h-frec">¿Cada cuánto?</label><select id="h-frec"><option value="diario">Todos los días</option><option value="lunvie">Lunes a viernes</option><option value="lunsab">Lunes a sábado</option><option value="semanal">Una vez por semana</option><option value="mensual">Una vez al mes</option></select>
   <label for="h-cat">Categoría</label><select id="h-cat"></select>
+  <label for="h-desde">Calcular desde</label><input id="h-desde" type="date">
+  <div class="mute" style="margin-top:6px">El presupuesto cuenta desde esta fecha en adelante, hasta tu próximo sueldo.</div>
   <div class="acts"><button id="hc">Cancelar</button><button class="pri" id="hs">Guardar</button></div>
 </dialog>
 <dialog id="du">
@@ -887,13 +889,16 @@ $("ssp").onclick=function(){
   }).then(function(){$("dsp").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 var FREC={diario:"Todos los días",lunvie:"Lunes a viernes",lunsab:"Lunes a sábado",semanal:"Una vez por semana",mensual:"Una vez al mes"};
-function mapH(r){return{id:r.id,nombre:r.nombre,monto:Number(r.monto),frec:r.frecuencia,cat:r.cat||"Comida"}}
+function mapH(r){return{id:r.id,nombre:r.nombre,monto:Number(r.monto),frec:r.frecuencia,cat:r.cat||"Comida",desde:r.desde||(r.created_at?String(r.created_at).slice(0,10):"")}}
 function mapU(r){return{id:r.id,nombre:r.nombre,monto:Number(r.monto),dia:Number(r.dia)}}
 function t0(){var t=new Date();t.setHours(0,0,0,0);return t}
-function occ(h,a,b){var days=Math.round((b-a)/864e5);if(h.frec==="semanal")return days/7;if(h.frec==="mensual")return days/30;
+function occ(h,a,b){if(h.desde){var d0=new Date(h.desde+"T00:00:00");if(d0>a)a=d0}var days=Math.round((b-a)/864e5);if(days<=0)return 0;if(h.frec==="semanal")return days/7;if(h.frec==="mensual")return days/30;
   var n=0;for(var i=0;i<days;i++){var w=new Date(a.getTime()+i*864e5).getDay();if(h.frec==="diario"||(h.frec==="lunvie"&&w>0&&w<6)||(h.frec==="lunsab"&&w>0))n++}return n}
 function nextPay(){var t=t0(),best=null;
   S.sue.forEach(function(u){for(var k=0;k<3;k++){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d>t){if(!best||d<best.d)best={d:d,u:u};break}}});
+  return best}
+function prevPay(){var t=t0(),best=null;
+  S.sue.forEach(function(u){for(var k=0;k>=-3;k--){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d<=t){if(!best||d>best)best=d;break}}});
   return best}
 function plan(){var np=nextPay();if(!np)return null;var t=t0(),days=Math.round((np.d-t)/864e5),pds=dstr(np.d);
   var hab=S.hab.reduce(function(s,h){return s+h.monto*occ(h,t,np.d)},0);
@@ -902,7 +907,11 @@ function plan(){var np=nextPay();if(!np)return null;var t=t0(),days=Math.round((
   var mon=S.acc.filter(function(a){return a.tipo!=="credito"}).reduce(function(s,a){return s+bal(a)},0);
   return{np:np,days:days,hab:hab,srv:srv,cuo:cuo,mon:mon,left:mon-hab-srv-cuo,perday:days>0?(mon-srv-cuo)/days:0}}
 function renderPlan(){
-  var P=plan(),t=t0(),e=new Date(t.getTime()+30*864e5);
+  var P=plan(),t=t0(),e=new Date(t.getTime()+30*864e5),pp=prevPay()||t,perEnd=P?new Date(P.np.d.getTime()-864e5):null;
+  var perOf=P?function(h){return h.monto*occ(h,pp,P.np.d)}:null;
+  var normal=S.hab.filter(function(h){return h.frec==="diario"||h.frec==="lunvie"||h.frec==="lunsab"}).reduce(function(s,h){return s+h.monto},0);
+  var perTot=perOf?S.hab.reduce(function(s,h){return s+perOf(h)},0):0;
+  var perLbl=perOf?fmtD(dstr(pp))+" – "+fmtD(dstr(perEnd)):"";
   var tH=S.hab.reduce(function(s,h){return s+h.monto*occ(h,t,e)},0);
   var inc=S.sue.reduce(function(s,u){return s+u.monto},0),srvM=S.serv.reduce(function(s,v){return s+v.monto},0),cuoM=S.cred.filter(function(c){return c.saldo>0&&c.cuota>0}).reduce(function(s,c){return s+c.cuota},0);
   var lbl=function(d){return d===1?"mañana":"en "+d+" días"};
@@ -918,8 +927,8 @@ function renderPlan(){
     $("d-plan").innerHTML='<div class="crh"><div><p class="sec">Mi plan</p><span class="mute">Hasta tu sueldo del '+fd+' ('+lbl(P.days)+')</span></div><button class="x" data-go="plan" style="color:var(--gold);font-weight:700">Ver plan ›</button></div>'
       +'<div class="ln2" style="margin-top:10px"><span>'+(neg?'Te faltarían':'Te quedarían')+'</span><span class="num '+(neg?'r':'g')+'">'+money(P.left)+'</span></div><div class="ln2"><span>Puedes gastar por día</span><span class="num y">'+money(Math.max(0,P.perday))+'</span></div>';
   }
-  $("pl-hab").innerHTML=S.hab.length?S.hab.map(function(h){var c=cat(h.cat);return '<div class="row"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(h.nombre)+'</b><span class="mute">'+money(h.monto)+' · '+FREC[h.frec]+'</span></div><span class="num" style="font-size:.82rem">≈ '+money(h.monto*occ(h,t,e))+'/mes</span><span><button class="x" data-hae="'+h.id+'" aria-label="Editar">✎</button><button class="x" data-had="'+h.id+'" aria-label="Eliminar">✕</button></span></div>'}).join("")
-    +'<div class="ln2" style="margin-top:6px"><b>Promedio por día</b><b class="num y">≈ '+money(tH/30)+'</b></div>':'<div class="empty">Aún no agregas tus gastos de cada día.<br>Ej.: pasajes, almuerzo, galletas…</div>';
+  $("pl-hab").innerHTML=S.hab.length?(perOf?'<div class="mute" style="font-size:.76rem;margin:2px 0 4px">Lo que gastas en cada uno durante el periodo '+perLbl+'</div>':'')+S.hab.map(function(h){var c=cat(h.cat);return '<div class="row"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(h.nombre)+'</b><span class="mute">'+money(h.monto)+' · '+FREC[h.frec]+(h.desde&&h.desde>dstr(pp)?' · desde '+fmtD(h.desde):'')+'</span></div><span class="num" style="font-size:.82rem">≈ '+(perOf?money(perOf(h)):money(h.monto*occ(h,t,e))+'/mes')+'</span><span><button class="x" data-hae="'+h.id+'" aria-label="Editar">✎</button><button class="x" data-had="'+h.id+'" aria-label="Eliminar">✕</button></span></div>'}).join("")
+    +'<div class="ln2" style="margin-top:6px"><b>Un día normal</b><b class="num y">'+money(normal)+'</b></div>'+(perOf?'<div class="ln2"><b>Total del periodo<br><span class="mute" style="font-weight:600;font-size:.74rem">'+perLbl+'</span></b><b class="num y">≈ '+money(perTot)+'</b></div>':''):'<div class="empty">Aún no agregas tus gastos de cada día.<br>Ej.: pasajes, almuerzo, galletas…</div>';
   $("pl-sue").innerHTML=S.sue.length?S.sue.map(function(u){return '<div class="row"><span class="chip" style="color:var(--grn)">💼</span><div><b>'+esc(u.nombre)+'</b><span class="mute">'+(u.dia===0?'Fin de mes':'Día '+u.dia+' de cada mes')+'</span></div><span class="num g">'+money(u.monto)+'</span><span><button class="x" data-uae="'+u.id+'" aria-label="Editar">✎</button><button class="x" data-uad="'+u.id+'" aria-label="Eliminar">✕</button></span></div>'}).join(""):'<div class="empty">Agrega los días en que te pagan.<br>Ej.: el 15 y a fin de mes.</div>';
   var ln=function(a,b,c){return '<div class="ln2"><span>'+a+'</span><b class="num '+(c||"")+'">'+b+'</b></div>'};
   var sob=inc-tH-srvM-cuoM;
@@ -928,14 +937,14 @@ function renderPlan(){
 function openH(h){eH=h?h.id:null;$("dht").textContent=h?"Editar gasto de cada día":"Nuevo gasto de cada día";$("hp").hidden=!!h;
   $("h-nom").value=h?h.nombre:"";$("h-mon").value=h?h.monto:"";$("h-frec").value=h?h.frec:"diario";
   $("h-cat").innerHTML=S.cats.filter(function(c){return c.tipo==="gasto"}).map(function(c){return '<option value="'+esc(c.nombre)+'">'+esc(c.emoji)+' '+esc(c.nombre)+'</option>'}).join("");
-  $("h-cat").value=h?h.cat:"Comida";$("dh").showModal()}
+  $("h-cat").value=h?h.cat:"Comida";$("h-desde").value=today();$("dh").showModal()}
 $("hp").innerHTML='<div class="mute" style="margin:10px 0 6px">Toca uno para llenar los datos:</div><div class="qs">'+[["Pasajes","Transporte","lunvie"],["Almuerzo","Comida","diario"],["Desayuno","Comida","diario"],["Cena","Comida","diario"],["Snacks / galletas","Comida","diario"],["Bebidas","Comida","diario"]].map(function(q){return '<button type="button" class="qc" data-hp="'+q.join("|")+'">'+q[0]+'</button>'}).join("")+'</div>';
 $("hc").onclick=function(){$("dh").close()};
 $("hs").onclick=function(){
   var n=$("h-nom").value.trim();if(!n){$("h-nom").focus();return}
   var m=parseFloat($("h-mon").value);if(!(m>0)){$("h-mon").focus();return}
-  var rec={nombre:n,monto:Math.round(m*100)/100,frecuencia:$("h-frec").value,cat:$("h-cat").value||"Comida"},b=$("hs");b.disabled=true;
-  up("habitos",rec,eH).then(function(d){var x=mapH(d);S.hab=eH?S.hab.map(function(e){return e.id===eH?x:e}):S.hab.concat(x);$("dh").close();render()}).catch(fail).then(function(){b.disabled=false});
+  var rec={nombre:n,monto:Math.round(m*100)/100,frecuencia:$("h-frec").value,cat:$("h-cat").value||"Comida",desde:$("h-desde").value||today()},b=$("hs");b.disabled=true;
+  up("habitos",rec,eH).catch(function(er){if(/desde/i.test((er&&er.message)||"")){delete rec.desde;toast("Ejecuta supabase-v9.sql para guardar la fecha de inicio.");return up("habitos",rec,eH)}throw er}).then(function(d){var x=mapH(d);S.hab=eH?S.hab.map(function(e){return e.id===eH?x:e}):S.hab.concat(x);$("dh").close();render()}).catch(fail).then(function(){b.disabled=false});
 };
 function openU(u){eU=u?u.id:null;$("dut").textContent=u?"Editar sueldo":"Nuevo sueldo";$("upre").hidden=!!u;
   $("u-nom").value=u?u.nombre:"";$("u-mon").value=u?u.monto:"";$("u-dia").value=u?u.dia:"15";$("du").showModal()}
