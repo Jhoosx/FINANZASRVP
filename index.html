@@ -894,11 +894,12 @@ function mapU(r){return{id:r.id,nombre:r.nombre,monto:Number(r.monto),dia:Number
 function t0(){var t=new Date();t.setHours(0,0,0,0);return t}
 function occ(h,a,b){if(h.desde){var d0=new Date(h.desde+"T00:00:00");if(d0>a)a=d0}var days=Math.round((b-a)/864e5);if(days<=0)return 0;if(h.frec==="semanal")return days/7;if(h.frec==="mensual")return days/30;
   var n=0;for(var i=0;i<days;i++){var w=new Date(a.getTime()+i*864e5).getDay();if(h.frec==="diario"||(h.frec==="lunvie"&&w>0&&w<6)||(h.frec==="lunsab"&&w>0))n++}return n}
+function payDays(){return S.sue.length?S.sue:[{dia:15},{dia:0}]}
 function nextPay(){var t=t0(),best=null;
-  S.sue.forEach(function(u){for(var k=0;k<3;k++){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d>t){if(!best||d<best.d)best={d:d,u:u};break}}});
+  payDays().forEach(function(u){for(var k=0;k<3;k++){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d>t){if(!best||d<best.d)best={d:d,u:u};break}}});
   return best}
 function prevPay(){var t=t0(),best=null;
-  S.sue.forEach(function(u){for(var k=0;k>=-3;k--){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d<=t){if(!best||d>best)best=d;break}}});
+  payDays().forEach(function(u){for(var k=0;k>=-3;k--){var y=t.getFullYear(),m=t.getMonth()+k,last=new Date(y,m+1,0).getDate(),d=new Date(y,m,u.dia===0?last:Math.min(u.dia,last));if(d<=t){if(!best||d>best)best=d;break}}});
   return best}
 function plan(){var np=nextPay();if(!np)return null;var t=t0(),days=Math.round((np.d-t)/864e5),pds=dstr(np.d);
   var hab=S.hab.reduce(function(s,h){return s+h.monto*occ(h,t,np.d)},0);
@@ -923,12 +924,12 @@ function renderPlan(){
     var neg=P.left<0,fd=fmtD(dstr(P.np.d));
     $("pl-sum").innerHTML='<span class="mute">📅 Hasta tu próximo sueldo · '+fd+' ('+lbl(P.days)+')</span><div class="num tv">'+money(P.left)+'</div><div class="tm"><span>'+(neg?'⚠ Te faltarían':'Te quedarían')+' cuando llegue tu sueldo</span></div>'
       +'<div class="tm pbig"><span>Puedes gastar por día</span><b class="num">'+money(Math.max(0,P.perday))+'</b></div>'
-      +row("Dinero que tienes hoy",money(P.mon))+row("− Gastos de cada día",money(P.hab))+row("− Servicios por vencer",money(P.srv))+row("− Cuotas de crédito",money(P.cuo));
+      +row("Dinero que tienes hoy",money(P.mon))+row("− Gastos de cada día",money(P.hab))+row("− Servicios por vencer",money(P.srv))+row("− Cuotas de crédito",money(P.cuo))+(S.sue.length?'':'<div class="tm"><span>Usando el día 15 y fin de mes. Agrega tu sueldo para confirmarlo.</span></div>');
     $("d-plan").innerHTML='<div class="crh"><div><p class="sec">Mi plan</p><span class="mute">Hasta tu sueldo del '+fd+' ('+lbl(P.days)+')</span></div><button class="x" data-go="plan" style="color:var(--gold);font-weight:700">Ver plan ›</button></div>'
       +'<div class="ln2" style="margin-top:10px"><span>'+(neg?'Te faltarían':'Te quedarían')+'</span><span class="num '+(neg?'r':'g')+'">'+money(P.left)+'</span></div><div class="ln2"><span>Puedes gastar por día</span><span class="num y">'+money(Math.max(0,P.perday))+'</span></div>';
   }
   $("pl-hab").innerHTML=S.hab.length?(perOf?'<div class="mute" style="font-size:.76rem;margin:2px 0 4px">Lo que gastas en cada uno durante el periodo '+perLbl+'</div>':'')+S.hab.map(function(h){var c=cat(h.cat);return '<div class="row"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(h.nombre)+'</b><span class="mute">'+money(h.monto)+' · '+FREC[h.frec]+(h.desde&&h.desde>dstr(pp)?' · desde '+fmtD(h.desde):'')+'</span></div><span class="num" style="font-size:.82rem">≈ '+(perOf?money(perOf(h)):money(h.monto*occ(h,t,e))+'/mes')+'</span><span><button class="x" data-hae="'+h.id+'" aria-label="Editar">✎</button><button class="x" data-had="'+h.id+'" aria-label="Eliminar">✕</button></span></div>'}).join("")
-    +'<div class="ln2" style="margin-top:6px"><b>Un día normal</b><b class="num y">'+money(normal)+'</b></div>'+(perOf?'<div class="ln2"><b>Total del periodo<br><span class="mute" style="font-weight:600;font-size:.74rem">'+perLbl+'</span></b><b class="num y">≈ '+money(perTot)+'</b></div>':''):'<div class="empty">Aún no agregas tus gastos de cada día.<br>Ej.: pasajes, almuerzo, galletas…</div>';
+    +'<div class="ln2" style="margin-top:6px"><b>Un día normal</b><b class="num y">'+money(normal)+'</b></div>'+(P?'<div class="ln2"><b>Gastarías hasta tu sueldo<br><span class="mute" style="font-weight:600;font-size:.74rem">'+fmtD(dstr(t))+' – '+fmtD(dstr(perEnd))+'</span></b><b class="num y">≈ '+money(P.hab)+'</b></div>'+(Math.round(perTot)!==Math.round(P.hab)?'<div class="ln2"><b>Total del periodo<br><span class="mute" style="font-weight:600;font-size:.74rem">'+perLbl+'</span></b><b class="num y">≈ '+money(perTot)+'</b></div>':''):''):'<div class="empty">Aún no agregas tus gastos de cada día.<br>Ej.: pasajes, almuerzo, galletas…</div>';
   $("pl-sue").innerHTML=S.sue.length?S.sue.map(function(u){return '<div class="row"><span class="chip" style="color:var(--grn)">💼</span><div><b>'+esc(u.nombre)+'</b><span class="mute">'+(u.dia===0?'Fin de mes':'Día '+u.dia+' de cada mes')+'</span></div><span class="num g">'+money(u.monto)+'</span><span><button class="x" data-uae="'+u.id+'" aria-label="Editar">✎</button><button class="x" data-uad="'+u.id+'" aria-label="Eliminar">✕</button></span></div>'}).join(""):'<div class="empty">Agrega los días en que te pagan.<br>Ej.: el 15 y a fin de mes.</div>';
   var ln=function(a,b,c){return '<div class="ln2"><span>'+a+'</span><b class="num '+(c||"")+'">'+b+'</b></div>'};
   var sob=inc-tH-srvM-cuoM;
