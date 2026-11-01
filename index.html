@@ -338,6 +338,7 @@ input[type=search]::-webkit-search-cancel-button{display:none}
 mark{background:color-mix(in srgb,var(--gold) 26%,transparent);color:inherit;border-radius:3px;padding:0 1px}
 .link2{border:0;background:none;color:var(--gold);font-weight:700;text-decoration:underline;padding:0}
 .st{gap:0}.st>div{background:none!important;border-radius:0;padding:4px 10px;border-left:1px solid var(--line)}.st>div:first-child{border-left:0;padding-left:2px}
+.dgt b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -734,8 +735,8 @@ function desk(){
   $("d-bal").innerHTML='<p class="sec">Balance</p><svg viewBox="0 0 560 190" style="width:100%"><polygon points="20,160 '+pl+' 540,160" fill="color-mix(in srgb,var(--gold) 16%,transparent)"/><polyline points="'+pl+'" fill="none" stroke="var(--gold)" stroke-width="2.5"/>'+xy.map(function(c,i){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="3.5" fill="var(--gold)"/><text x="'+c[0]+'" y="182" text-anchor="middle" font-size="11" fill="var(--mute)">'+P[i][0].toLocaleDateString("es-PE",{day:"numeric",month:"short"})+'</text>'}).join("")+'</svg>';
   var D=[],mv=1;for(k=6;k>=0;k--){var dd=new Date(now.getTime()-k*864e5),sd=dstr(dd),ii=0,gg=0;S.mov.forEach(function(m){if(m.date===sd&&!isTr(m)){if(m.tipo==="ingreso")ii+=m.amount;else gg+=m.amount}});mv=Math.max(mv,ii,gg);D.push([dd,ii,gg])}
   $("d-7").innerHTML='<p class="sec">Últimos 7 días</p><div class="b7">'+D.map(function(x){return '<div class="bc"><div class="bb"><i class="g2" style="height:'+x[1]/mv*100+'%"></i><i class="r2" style="height:'+x[2]/mv*100+'%"></i></div><span>'+x[0].toLocaleDateString("es-PE",{weekday:"short",day:"numeric"})+'</span></div>'}).join("")+'</div>';
-  var rc=S.mov.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts}).slice(0,6);
-  $("d-rec").innerHTML='<p class="sec">Transacciones recientes</p>'+(rc.length?rc.map(function(m){var c=cat(m.cat),ing=m.tipo==="ingreso";return '<div class="row" data-mv="'+m.id+'" style="grid-template-columns:40px 1fr auto;cursor:pointer"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||m.cat)+'</b><span class="mute">'+esc(accName(m.cuenta))+' · '+m.date+'</span></div><span class="num '+(ing?"g":"r")+'">'+(ing?"+":"-")+money(m.amount)+'</span></div>'}).join(""):'<div class="empty">Sin movimientos.</div>');
+  var rc=mergeTr(S.mov).sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts}).slice(0,6);
+  $("d-rec").innerHTML='<p class="sec">Transacciones recientes</p>'+(rc.length?rc.map(function(m){var c=cat(m.cat),ing=m.tipo==="ingreso";if(m.tr)return '<div class="row" data-mv="'+m.id+'" style="grid-template-columns:40px 1fr auto;cursor:pointer"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||"Transferencia")+'</b><span class="mute">'+esc(accName(m.cuenta))+' → '+esc(accName(m.cuenta2))+' · '+m.date+'</span></div><span class="num y">'+money(m.amount)+'</span></div>';return '<div class="row" data-mv="'+m.id+'" style="grid-template-columns:40px 1fr auto;cursor:pointer"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+esc(m.note||m.cat)+'</b><span class="mute">'+esc(accName(m.cuenta))+' · '+m.date+'</span></div><span class="num '+(ing?"g":"r")+'">'+(ing?"+":"-")+money(m.amount)+'</span></div>'}).join(""):'<div class="empty">Sin movimientos.</div>');
 }
 function applyCats(){CATS=S.cats.map(function(c){return[c.nombre,c.emoji,c.color,c.tipo==="ingreso"?1:0]})}
 function greet(){var n=(S.prof&&S.prof.nombre)||EM.split("@")[0];$("hi").textContent="Hola, "+n.charAt(0).toUpperCase()+n.slice(1)}
@@ -884,17 +885,35 @@ $("tsv").onclick=function(){
   .then(function(r){if(r.error)throw r.error;r.data.forEach(function(x){S.mov.push(mapM(x))});$("dtr").close();render();toast("Transferencia registrada ✓")})
   .catch(fail).then(function(){b.disabled=false});
 };
+var mExp={};
+function mvAct(){return !!(nrm(mq).trim()||mAcc||mCat||mFrom||mTo)}
+function mergeTr(list){
+  var out=[],pend={};
+  list.forEach(function(m){
+    if(!isTr(m)){out.push(m);return}
+    var k=m.cat+"|"+m.date+"|"+m.amount+"|"+m.ts,o=pend[k];
+    if(o&&o.tipo!==m.tipo){
+      var a=m.tipo==="gasto"?m:o,b=m.tipo==="gasto"?o:m;
+      out[out.indexOf(o)]={id:a.id,id2:b.id,tr:true,tipo:"transfer",cat:a.cat,amount:a.amount,date:a.date,ts:a.ts,cuenta:a.cuenta,cuenta2:b.cuenta,note:/^Transferencia (a|de) /.test(a.note)?"":a.note};
+      delete pend[k]
+    }else{pend[k]=m;out.push(m)}
+  });
+  return out}
+function findPair(m){if(!isTr(m))return null;return S.mov.filter(function(x){return x.id!==m.id&&isTr(x)&&x.cat===m.cat&&x.date===m.date&&x.amount===m.amount&&x.ts===m.ts&&x.tipo!==m.tipo})[0]||null}
 function openD(id){
   var m=S.mov.filter(function(x){return x.id==id})[0];if(!m)return;
-  var c=cat(m.cat),i=m.tipo==="ingreso",t=isTr(m);
-  var tp=t?(m.cat==="Transferencia"?(i?"Transferencia recibida":"Transferencia enviada"):(i?"Pago recibido":"Pago de tarjeta")):(i?"Ingreso":"Gasto");
+  var c=cat(m.cat),i=m.tipo==="ingreso",t=isTr(m),pr=findPair(m),out=pr?(m.tipo==="gasto"?m:pr):null,inn=pr?(m.tipo==="gasto"?pr:m):null;
+  var tp=pr?(m.cat==="Transferencia"?"Transferencia entre cuentas":"Pago de tarjeta"):(t?(m.cat==="Transferencia"?(i?"Transferencia recibida":"Transferencia enviada"):(i?"Pago recibido":"Pago de tarjeta")):(i?"Ingreso":"Gasto"));
   var fecha=new Date(m.date+"T00:00:00").toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
   var hora=m.ts?new Date(m.ts).toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}):"—";
   function r(a,b){return '<div class="dtl"><span>'+a+'</span><b>'+b+'</b></div>'}
-  $("dd-b").innerHTML='<div class="dtop"><span class="chip big" style="color:'+c[2]+'">'+c[1]+'</span><div class="num dam '+(t?"y":i?"g":"r")+'">'+(i?"+":"-")+money(m.amount)+'</div><span class="dok">✓ Registrado</span></div>'
-   +r("Tipo",tp)+r("Categoría",esc(m.cat))+r("Cuenta",esc(accName(m.cuenta)))+r("Fecha",fecha)+r("Hora de registro",hora)+(m.note?r("Descripción",esc(m.note)):"")+r("N.º de operación",String(m.id).replace(/-/g,"").slice(0,8).toUpperCase())
-   +(t?'<div class="mute" style="margin:10px 0 0">Una transferencia tiene dos movimientos (salida y entrada). Si eliminas uno, elimina también el otro.</div>':'')
-   +'<div class="acts"><button data-e="'+m.id+'">Editar</button><button class="pri dng" data-d="'+m.id+'">Eliminar</button></div><button class="btn alt" data-dc="1" style="margin-top:10px">Cerrar</button>';
+  var showNote=m.note&&!/^Transferencia (a|de) /.test(m.note);
+  $("dd-b").innerHTML='<div class="dtop"><span class="chip big" style="color:'+c[2]+'">'+c[1]+'</span><div class="num dam '+(t?"y":i?"g":"r")+'">'+(pr?"":(i?"+":"-"))+money(m.amount)+'</div><span class="dok">✓ Registrado</span></div>'
+   +r("Tipo",tp)+r("Categoría",esc(m.cat))+(pr?r("Desde",esc(accName(out.cuenta)))+r("Hacia",esc(accName(inn.cuenta))):r("Cuenta",esc(accName(m.cuenta))))
+   +r("Fecha",fecha)+r("Hora de registro",hora)+(showNote?r("Descripción",esc(m.note)):"")+r("N.º de operación",String(m.id).replace(/-/g,"").slice(0,8).toUpperCase())
+   +(t&&!pr?'<div class="mute" style="margin:10px 0 0">Es un lado suelto de una transferencia: su otro movimiento ya no existe.</div>':'')
+   +(pr?'<div class="acts"><button class="pri dng" data-d="'+out.id+'" data-d2="'+inn.id+'">Eliminar transferencia</button></div>':'<div class="acts"><button data-e="'+m.id+'">Editar</button><button class="pri dng" data-d="'+m.id+'">Eliminar</button></div>')
+   +'<button class="btn alt" data-dc="1" style="margin-top:10px">Cerrar</button>';
   $("dd").showModal()}
 function openS(v){eS=v?v.id:null;$("dsvt").textContent=v?"Editar servicio":"Nuevo servicio";
   $("s-nom").value=v?v.nombre:"";$("s-mon").value=v?v.monto:"";$("s-dia").value=v?v.dia:"";$("s-estw").hidden=!v;$("s-est").value=v&&v.pm===ymNow()?"1":"0";$("svp").hidden=!!v;$("s-cta").innerHTML=S.acc.map(function(a){return '<option value="'+a.id+'">'+esc(a.nombre)+'</option>'}).join("");$("s-auto").value=v&&v.auto?"1":"0";if(v&&v.cta)$("s-cta").value=v.cta;autoUI();$("dsv").showModal()}
@@ -1059,13 +1078,13 @@ function hl(t){var e=esc(t);return HLRE?e.replace(HLRE,"<mark>$1</mark>"):e}
 function renderMov(l,inc,exp,mb){
   var tk=nrm(mq).split(/\s+/).filter(Boolean).map(function(t){return t.replace(",",".")}),act=!!(tk.length||mAcc||mCat||mFrom||mTo);
   HLRE=tk.length?new RegExp("("+tk.map(accRe).join("|")+")","gi"):null;
-  var base=act?S.mov:l;
+  var base=mergeTr(act?S.mov:l);
   function pass(m,skip){
     if(!skip&&flt!=="all"&&m.tipo!==flt)return false;
-    if(mAcc&&m.cuenta!==mAcc)return false;if(mCat&&m.cat!==mCat)return false;
+    if(mAcc&&m.cuenta!==mAcc&&m.cuenta2!==mAcc)return false;if(mCat&&m.cat!==mCat)return false;
     if(mFrom&&m.date<mFrom)return false;if(mTo&&m.date>mTo)return false;
     if(!tk.length)return true;
-    var f=new Date(m.date+"T00:00:00"),hay=nrm([m.note,m.cat,accName(m.cuenta),m.amount.toFixed(2),String(m.amount),m.tipo==="ingreso"?"ingreso":"gasto",isTr(m)?"transferencia":"",m.date,f.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})].join(" "));
+    var f=new Date(m.date+"T00:00:00"),hay=nrm([m.note,m.cat,accName(m.cuenta),m.amount.toFixed(2),String(m.amount),m.tr?"":(m.tipo==="ingreso"?"ingreso":"gasto"),(isTr(m)||m.tr)?"transferencia":"",m.cuenta2?accName(m.cuenta2):"",m.date,f.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})].join(" "));
     return tk.every(function(t){return hay.indexOf(t)>=0})}
   var ml=base.filter(function(m){return pass(m)}).sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts});
   var pool=base.filter(function(m){return pass(m,true)});
@@ -1079,11 +1098,12 @@ function renderMov(l,inc,exp,mb){
   var G={},ord=[],h="",lastM="";
   ml.forEach(function(m){if(!G[m.date]){G[m.date]=[];ord.push(m.date)}G[m.date].push(m)});
   ord.forEach(function(d){
-    var L=G[d],ti=sum("ingreso",L),tg=sum("gasto",L),dl=dleft(d),cl=!!mCol[d],dt=new Date(d+"T00:00:00");
+    var L=G[d],ti=sum("ingreso",L),tg=sum("gasto",L),dl=dleft(d),cl=act?!!mCol[d]:!mExp[d],dt=new Date(d+"T00:00:00");
     if(act&&d.slice(0,7)!==lastM){lastM=d.slice(0,7);var mn=dt.toLocaleDateString("es-PE",{month:"long",year:"numeric"});h+='<div class="mmh">'+mn.charAt(0).toUpperCase()+mn.slice(1)+'</div>'}
     var nm=dl===0?"Hoy":dl===-1?"Ayer":dt.toLocaleDateString("es-PE",{weekday:"long"});
     h+='<div class="dg'+(cl?' cl':'')+'"><button class="dgh" data-dtg="'+d+'" aria-expanded="'+(!cl)+'"><span class="dgt"><b>'+nm+'</b><small>'+dt.toLocaleDateString("es-PE",{day:"numeric",month:"short",year:"numeric"})+' · '+L.length+' mov.</small></span><span class="dgs">'+(ti?'<span class="num g">+'+money(ti)+'</span>':'')+(tg?'<span class="num">-'+money(tg)+'</span>':'')+'</span><span class="dgc">›</span></button><div class="dgb"><div>'+L.map(function(m){
       var c=cat(m.cat),i=m.tipo==="ingreso",t=isTr(m),hr=m.ts?new Date(m.ts).toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit",hour12:false}):"";
+      if(m.tr)return '<div class="row" data-mv="'+m.id+'"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+hl(m.note||(m.cat==="Transferencia"?"Transferencia":m.cat))+'</b><span class="mute">'+hl(accName(m.cuenta))+' → '+hl(accName(m.cuenta2))+(hr?' · '+hr:'')+'</span></div><span class="num y">'+money(m.amount)+'</span><span class="cv">›</span></div>';
       return '<div class="row" data-mv="'+m.id+'"><span class="chip" style="color:'+c[2]+'">'+c[1]+'</span><div><b>'+hl(m.note||m.cat)+'</b><span class="mute">'+hl(accName(m.cuenta))+' · '+hl(m.cat)+(t?' · transferencia':'')+(hr?' · '+hr:'')+'</span></div><span class="num '+(t?"y":i?"g":"r")+'">'+(i?"+":"-")+money(m.amount)+'</span><span class="cv">›</span></div>'}).join("")+'</div></div></div>'});
   $("list").innerHTML=h;
 }
@@ -1094,7 +1114,7 @@ $("m-fa").onchange=function(){mAcc=this.value;render()};
 $("m-fcat").onchange=function(){mCat=this.value;render()};
 $("m-d1").onchange=function(){mFrom=this.value;render()};
 $("m-d2").onchange=function(){mTo=this.value;render()};
-function go(v,back){if(!back&&v!==curV){vst.push(curV);if(vst.length>20)vst.shift()}curV=v;if(v==="dash")vst=[];if(!(history.state&&history.state.app))history.pushState({app:1},"");["dash","mov","bank","cat","prof","cred","serv","plan"].forEach(function(x){$("v-"+x).hidden=x!==v});
+function go(v,back){if(v==="mov"&&curV!=="mov")mExp={};if(!back&&v!==curV){vst.push(curV);if(vst.length>20)vst.shift()}curV=v;if(v==="dash")vst=[];if(!(history.state&&history.state.app))history.pushState({app:1},"");["dash","mov","bank","cat","prof","cred","serv","plan"].forEach(function(x){$("v-"+x).hidden=x!==v});
   Array.prototype.forEach.call(document.querySelectorAll(".nav button"),function(b){b.classList.toggle("on",b.dataset.go===v)});
   sd(false);$("sd").style.display=v==="dash"?"none":"";$("add").dataset.v=v;$("add").hidden=v==="prof";$("fabs").style.visibility=(v==="dash"||v==="mov")?"visible":"hidden";if(v==="prof")fillProf();window.scrollTo(0,0)}
 function fail(){toast("No se pudo completar. Revisa tu conexión e intenta de nuevo.")}
@@ -1164,7 +1184,7 @@ document.addEventListener("click",function(ev){
   else if(d.uae){var uu=S.sue.filter(function(x){return x.id==d.uae})[0];if(uu)openU(uu)}
   else if(d.uad){askD("¿Eliminar este sueldo?",function(){rm("sueldos",d.uad).then(function(){S.sue=S.sue.filter(function(x){return x.id!=d.uad});render()}).catch(fail)})}
   else if(d.upre){var w=d.upre.split("|");$("u-nom").value=w[0];$("u-dia").value=w[1]}
-  else if(d.dtg){mCol[d.dtg]=!mCol[d.dtg];t.parentElement.classList.toggle("cl",!!mCol[d.dtg]);t.setAttribute("aria-expanded",!mCol[d.dtg])}
+  else if(d.dtg){var cl2=t.parentElement.classList.toggle("cl");if(mvAct())mCol[d.dtg]=cl2;else mExp[d.dtg]=!cl2;t.setAttribute("aria-expanded",!cl2)}
   else if(d.mr){var n0=new Date(),a0=dstr(n0);
     if(d.mr==="hoy"){mFrom=a0;mTo=a0}else if(d.mr==="ayer"){var y0=dstr(new Date(n0.getFullYear(),n0.getMonth(),n0.getDate()-1));mFrom=y0;mTo=y0}
     else if(d.mr==="7"){mFrom=dstr(new Date(n0.getFullYear(),n0.getMonth(),n0.getDate()-6));mTo=a0}
@@ -1197,7 +1217,7 @@ document.addEventListener("click",function(ev){
   else if(d.ce){var c=S.cats.filter(function(x){return x.id==d.ce})[0];if(c)openC(c)}
   else if(d.cd){askD("¿Eliminar esta categoría? Los movimientos que la usan se mostrarán como “"+(S.cats.filter(function(x){return x.id==d.cd})[0]||{}).nombre+"” sin ícono.",function(){rm("categorias",d.cd).then(function(){S.cats=S.cats.filter(function(x){return x.id!=d.cd});applyCats();render()}).catch(fail)})}
   else if(d.e){if($("dd").open)$("dd").close();var m=S.mov.filter(function(x){return x.id==d.e})[0];if(m)openM(m)}
-  else if(d.d){if($("dd").open)$("dd").close();askD("¿Eliminar este movimiento?",function(){rm("gastos",d.d).then(function(){S.mov=S.mov.filter(function(x){return x.id!=d.d});render()}).catch(fail)})}
+  else if(d.d){if($("dd").open)$("dd").close();askD("¿Eliminar este movimiento?",function(){Promise.all([rm("gastos",d.d)].concat(d.d2?[rm("gastos",d.d2)]:[])).then(function(){S.mov=S.mov.filter(function(x){return x.id!=d.d&&x.id!=d.d2});render()}).catch(fail)})}
   else if(d.ae){var a=S.acc.filter(function(x){return x.id==d.ae})[0];if(a)openA(a)}
   else if(d.ad){askD("¿Eliminar esta cuenta? Sus movimientos quedarán sin cuenta.",function(){rm("cuentas",d.ad).then(function(){S.acc=S.acc.filter(function(x){return x.id!=d.ad});S.mov.forEach(function(x){if(x.cuenta==d.ad)x.cuenta=null});render()}).catch(fail)})}
 });
